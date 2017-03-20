@@ -115,10 +115,13 @@ def print_scores(scores):
     print("    - macro score average: " + str(scores["mean_score_macro"]))
     print("    - score of the resulting clf: "+str(scores["best_macro_score"]))
     print("    - resulting confusion matrix :")
-    print_cm(scores["confusion_matrix"],scores["labels"])
+    try :
+        print_cm(scores["confusion_matrix"],scores["labels"])
+    except :
+        print("Confusion matrix printing failed\n")
 
 
-def print_cm(cm, labels, hide_0=False, hide_diag=False, hide_thshold=None):
+def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False, hide_threshold=None):
     """
     pretty prints for confusion matrixes
     """
