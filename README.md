@@ -13,6 +13,7 @@ the command and command options are detailed in the following **commands section
 ## Commands
 
 Use the folowing commands to conduct your experiments:
+
 | Command      | Purpose                                                          |
 |--------------|------------------------------------------------------------------|
 | **train**    | train a classifier, validate and persist it                      |
@@ -20,7 +21,9 @@ Use the folowing commands to conduct your experiments:
 | **compare**  | compare different classifiers on different sets of features      |
 | **optimize** | optimize parameters for a specified classifier / set of features |
 
+
 ### train options:
+
 | option                 | mandatory               | purpose                                                                                                                                                                                                                         | Possible Value                                         |
 |------------------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
 | -l, --labels           | yes                     | Label you wish to predict. Possible labels are : language, variety and gender. Should you choose variety or gender, please specify a directory containing directly all the tweets (no sub directories)  | l, language or v, variety or g, gender                 |
@@ -32,8 +35,7 @@ Use the folowing commands to conduct your experiments:
 | --processed-tweets-dir | no                      | output directory into which the processed tweets will be stored                                                                                                                                                                 | path to the output directory (tweets)                  |
 | -v, --verbosity        | no                      | verbosity level : from 0 (quiet) to 3 (noisy)                                                                                                                                                                                   | [0;3]                                                  |
 
-*Exemple (windows)* : python main.py train --labels g --classifier svm --features tfidf --in ./training-data/pan17/en --output-dir ./output/pan17/en --verbosity 1
-
+*Exemple (windows)* : python profiler.py train --labels l --classifier svm --features tfidf --in ./training-data/pan10-03-17 --output-dir ./output/pan17/lang --verbosity 1
 
 ### classify options
 Not yet implemented
