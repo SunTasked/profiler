@@ -145,3 +145,24 @@ def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False, hide_threshold=
                 cell = cell if cm[i, j] > hide_threshold else empty_cell
             print(cell, end=' ')
         print()
+
+
+def create_dir(new_dir):
+    """
+    Checks if the specified direcory does exists
+    Creates it if that is not the case
+    """
+    os.makedirs(new_dir,exist_ok=True)
+
+def get_features_extr_name(features_extr):
+    """
+    Returns the features extractor name
+    """
+    name = "+".join([x[0] for x in features_extr])
+    return name
+
+def get_classifier_name(classifier):
+    """
+    Returns the classifier name
+    """
+    return classifier[0]

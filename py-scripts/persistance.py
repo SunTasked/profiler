@@ -1,19 +1,22 @@
 from sklearn.externals import joblib
 import numpy
 
-def save_model(pipeline, output_dir, verbose):
+from utils import create_dir, get_classifier_name, get_features_extr_name
+
+
+def save_model(pipeline, output_dir, filename, verbose):
     '''
     Saves a classifier (pipeline) to a file.
     Directory and filename must be specified separatly
     Returns True if the save went well
     '''
     if verbose:
-        print("Saving Model into : " + output_dir + "pipe.pkl")
+        print("Saving Model into : " + output_dir + filename + "_pipe.pkl")
 
     # Save model
-    joblib.dump(pipeline, output_dir + 'pipe.pkl')
+    joblib.dump(pipeline, output_dir + filename + '_pipe.pkl')
     # Save model configuration
-    conf_file = open(output_dir + 'pipe.config', mode='w')
+    conf_file = open(output_dir + filename + '_pipe.config', mode='w')
     for step in pipeline.steps:
         conf_file.write(str(step[0]) + "\n")
         conf_file.write(str(step[1]) + "\n\n")
@@ -22,8 +25,7 @@ def save_model(pipeline, output_dir, verbose):
         print("Model Saved.\n")
 
 
-
-def save_scores(scores, output_dir, verbose) :
+def save_scores(scores, output_dir, filename, verbose) :
     '''
     Exports the data contained in the scores object to files:
         - "mean_score_micro": average micro f-score 
@@ -32,10 +34,11 @@ def save_scores(scores, output_dir, verbose) :
         - "best_macro_score": score of the resulting model
     '''
     if verbose:
-        print("Saving training results into : " + output_dir + "scores.txt")
+        print("Saving training results into : " + output_dir + 
+            filename + "_***.txt")
         
     # Save scores
-    outfile = open(output_dir + "scores.txt", 'w')
+    outfile = open(output_dir + filename + "_scores.txt", 'w')
     outfile.write("-------------------------------\n")
     outfile.write("--- Results of the training ---\n")
     outfile.write("-------------------------------\n")
@@ -49,7 +52,7 @@ def save_scores(scores, output_dir, verbose) :
     outfile.close()
 
     # Save confusion matrix
-    csvfile = open(output_dir + "confusion_matrix.csv", 'w')
+    csvfile = open(output_dir + filename + "_confusion_matrix.csv", 'w')
     labels = scores["labels"]
     confusion = scores["confusion_matrix"].tolist()
     header = ','.join([''] + labels) + '\n'
@@ -64,21 +67,21 @@ def save_scores(scores, output_dir, verbose) :
         print("Training results saved.\n")
 
 
-def export_to_CSV(table, feature_label, classifier_label, outfile_path):
+def save_comparison_table(table, extractors, classifiers, filepath):
     '''
     Exports the data contained in the table to csv format:
     by def: each row represent a different set of feature
             each column represent a different kind of classifier
     '''
-    outfile_path = outfile_path if outfile_path else "./result.csv"
-    outfile = open(outfile_path, 'w')
+    file = open(filepath, 'w')
 
-    header = ','.join(['Features\\Classifier'] + classifier_label) + '\n'
-    outfile.write(header)
+    header = ','.join(['Features\\Classifier'] + 
+        [get_classifier_name(clf) for clf in classifiers]) + '\n'
+    file.write(header)
 
     for idx, row in enumerate(table):
-        str_row = feature_label[idx] + ","
+        str_row = get_features_extr_name(extractors[idx]) + ","
         str_row += ','.join(['{0:.3f}'.format(float(x)) for x in row])  + '\n'
-        outfile.write(str_row)
+        file.write(str_row)
     
-    outfile.close()
+    file.close()

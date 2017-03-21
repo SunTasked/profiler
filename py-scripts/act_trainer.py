@@ -7,6 +7,7 @@ from sklearn.model_selection import KFold
 
 from tweet_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
 from utils import build_corpus, abort_clean, format_dir_name, print_scores
+from utils import get_classifier_name, get_features_extr_name
 from classifiers import get_classifier
 from features import get_features_extr
 from tweet_pipeline import get_pipeline
@@ -21,14 +22,14 @@ def train(options) :
     '''
     Trains a specified classifier on a specified dataset using specified feats
     Will proceed as follows :
-        - load the dataset
+        - loads the dataset
         - builds the corpus
-        - load the classifier
-        - load the features extractor
-        - build the execution pipeline
+        - loads the classifier
+        - loads the features extractor
+        - builds the execution pipeline
         - trains the classifier on the corpus
-        - cross-validate the resulting model [optional]
-        - save the resulting model [optional]
+        - cross-validates the resulting model [optional]
+        - saves the resulting model [optional]
     '''
 
     #--------------------------------------------------------------------------
@@ -80,6 +81,7 @@ def train(options) :
     #--------------------------------------------------------------------------
     # Load the classifier
     
+    t0 = time()
     classifier = get_classifier(
         classifier_str=options["classifier"],
         verbose=options["verbosity"])
@@ -101,6 +103,7 @@ def train(options) :
         classifier=classifier, 
         verbose=options["verbosity"])
 
+
     #--------------------------------------------------------------------------
     # Train the execution pipeline
 
@@ -115,13 +118,15 @@ def train(options) :
                             pipeline=pipeline, 
                             verbose=options["verbosity"])
         
-        scores["labels"] = labels
         if options["verbosity"]:
             print_scores(scores)
         if options["output-dir"]:
+            filename = str(get_features_extr_name(features_extr) + 
+                "+" + get_classifier_name(classifier))
             save_scores(
                 scores=scores,
                 output_dir=format_dir_name(options["output-dir"]),
+                filename=filename,
                 verbose=options["verbosity"])
 
     # train without validation --> output-dir required
@@ -141,10 +146,19 @@ def train(options) :
     #--------------------------------------------------------------------------
     # Save the resulting model
     if (options["output-dir"]):
+        filename = str(get_features_extr_name(features_extr) + 
+                "+" + get_classifier_name(classifier))
         save_model(
             pipeline=pipeline, 
-            output_dir=format_dir_name(options["output-dir"]), 
+            output_dir=format_dir_name(options["output-dir"]),
+            filename=filename,
             verbose=options["verbosity"]) 
+    
+
+    #--------------------------------------------------------------------------
+    # End Execution
+    if options["verbosity"]:
+        print("Training task complete in " + str(round(time()-t0)) + " s")
 
 
 
@@ -203,7 +217,7 @@ def train_model_cross_validation(corpus, labels, pipeline, verbose=1):
         train_corpus = corpus.iloc[train_indices]
         pipeline = train_model(
             corpus=train_corpus, 
-            pipeline= pipeline,
+            pipeline=pipeline,
              verbose=0)
 
         # test model 
@@ -230,6 +244,7 @@ def train_model_cross_validation(corpus, labels, pipeline, verbose=1):
         # save the pipeline if better than the current one
         if score_macro > best_f_score :
             best_pipeline = clone(pipeline, True)
+            best_f_score = score_macro
 
     if verbose :
         print("Model Cross Validation complete in %.3f seconds.\n" 
@@ -238,6 +253,7 @@ def train_model_cross_validation(corpus, labels, pipeline, verbose=1):
     scores = {  "mean_score_micro": sum(scores_micro)/len(scores_micro),
                 "mean_score_macro": sum(scores_macro)/len(scores_macro),
                 "confusion_matrix": confusion,
-                "best_macro_score": best_f_score}
+                "best_macro_score": best_f_score,
+                "labels"          : labels}
     
     return best_pipeline, scores
