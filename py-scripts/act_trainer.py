@@ -83,7 +83,7 @@ def train(options) :
     
     t0 = time()
     classifier = get_classifier(
-        classifier_str=options["classifier"],
+        classifier_str=options["classifier"][0],
         verbose=options["verbosity"])
 
 
@@ -91,7 +91,7 @@ def train(options) :
     # Load the features extractors
 
     features_extr = get_features_extr(        
-        features_str=options["features"],
+        features_str=options["features"][0],
         verbose=options["verbosity"])
 
 

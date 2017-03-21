@@ -166,3 +166,9 @@ def get_classifier_name(classifier):
     Returns the classifier name
     """
     return classifier[0]
+
+def integer(string):
+    """
+    Converts a string to int
+    """
+    return int(string)

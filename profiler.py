@@ -1,66 +1,66 @@
 import sys
-from optparse import OptionParser
+from argparse import ArgumentParser
 
-#######################################
-########### Options Parser ############
-#######################################
+# add path to the python scripts
+sys.path.insert(0, './py-scripts')
+from utils import integer
 
-parser = OptionParser()
-parser.add_option("-l", "--labels",  type="str", dest="selected_labels", default="",
-                  help="specify which labels you wish to use on the output \
-                  data (combinations are available) \
-                  ['l' for language - 'v' for variety - 'g' for gender]")
-parser.add_option("-c", "--classifier",  type="str",
-                  dest="selected_classifier", default="",
-                  help="The selected classification algorithm")
-parser.add_option("-f", "--features",  type="str", dest="selected_features",
-                  default="",
-                  help="The selected set of features")
-parser.add_option("--in","--input-dir", type="str", dest="input_dir",
-                  help="specify the directory from which the tweets will be \
-                  exctracted")
-parser.add_option("--out","--output-dir", type="str", dest="output_dir",
-                  default='./',
-                  help="specify the directory in which the result files will \
-                be saved (default is current dir)")
-parser.add_option("--no-cross-validation",  action='store_false',
-                  dest="cross_validation", default=True,
-                  help="specify if you want to cross validate your model")
-parser.add_option("-s", "--scores",  type="str", dest="scores",
-                  default="precision",
-                  help="The score function to optimize ('-' separated)")
-parser.add_option("--processed-tweets-dir", type="str",
-                  dest="processed_tweets_dir", default='',
-                  help="specify the directory from which the tweets will be \
-                  exctracted")
-parser.add_option("-v", "--verbosity",  type="int", dest="verbosity", default=1,
-                  help="define the verbosity level that you need \
-                  (0 is minimal, 3 is maximal)")
+########################################
+########### Argument Parser ############
+########################################
+
+parser = ArgumentParser(description="profiler v1.0")
+parser.add_argument("program")
+parser.add_argument("action")
+parser.add_argument("-l", "--labels",  type=str, dest="selected_labels", 
+                    default="",
+                    help="specify which labels you wish to use on the output \
+                    data (combinations are available) \
+                    ['l' for language - 'v' for variety - 'g' for gender]")
+parser.add_argument("-c", "--classifier", action='append',
+                    dest="selected_classifier", default=[],
+                    help="The selected classification algorithm")
+parser.add_argument("-f", "--features", dest="selected_features",
+                    default=[], action='append',
+                    help="The selected set of features")
+parser.add_argument("--in","--input-dir", type=str, dest="input_dir",
+                    help="specify the directory from which the tweets will be \
+                    exctracted")
+parser.add_argument("--out","--output-dir", type=str, dest="output_dir",
+                    default='./',
+                    help="specify the directory in which the result files will \
+                    be saved (default is current dir)")
+parser.add_argument("--no-cross-validation",  action='store_false',
+                    dest="cross_validation", default=True,
+                    help="specify if you want to cross validate your model")
+parser.add_argument("-s", "--scores",  type=str, dest="scores",
+                    default="precision",
+                    help="The score function to optimize ('-' separated)")
+parser.add_argument("--processed-tweets-dir", type=str,
+                    dest="processed_tweets_dir", default='',
+                    help="specify the directory from which the tweets will be \
+                    exctracted")
+parser.add_argument("-v", "--verbosity",  type=integer, dest="verbosity", default=1,
+                    help="define the verbosity level that you need \
+                    (0 is minimal, 3 is maximal)")
     
-(options, args) = parser.parse_args(sys.argv)
+args = parser.parse_args(sys.argv)
 
-if len(args) != 2:
-    print("ERROR : Wrong number of arguments. (expected 1)")
-    print("        Arguments found : " + ", ".join(args[1:]))
-    exit()
 
-usr_request = args[1]
+usr_request = args.action
 available_requests = ["train", "classify", "optimize", "compare"]
 
 if usr_request not in available_requests:
     print("ERROR : Unknown user request.")
     print("        Request found : " + usr_request)
     exit()
-
+print(args)
 #######################################
 ########### Program Start #############
 #######################################
 
-# add path to the python scripts
-sys.path.insert(0, './py-scripts')
 from tweet_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
 from utils import build_corpus
-
 
 #------------------------------------------------------------------------------
 # [Contextual] Compare different algorithms on different features sets
@@ -80,13 +80,13 @@ if usr_request == "compare":
     #   - classifier           : selected classifiers for training or load
 
     compare_opt = {
-        "input-dir"            : options.input_dir,
-        "processed-tweets-dir" : options.processed_tweets_dir,
-        "verbosity"            : options.verbosity,
-        "labels"               : options.selected_labels,
-        "output-dir"           : options.output_dir,
-        "features"             : options.selected_features,
-        "classifier"           : options.selected_classifier
+        "input-dir"            : args.input_dir,
+        "processed-tweets-dir" : args.processed_tweets_dir,
+        "verbosity"            : args.verbosity,
+        "labels"               : args.selected_labels,
+        "output-dir"           : args.output_dir,
+        "features"             : args.selected_features,
+        "classifier"           : args.selected_classifier
     }
 
     from act_comparator import compare
@@ -123,14 +123,14 @@ elif usr_request == "train":
     #   - no-cross-validation  : assess if the classifier should be cross-valid
 
     trainer_opt = {
-        "input-dir"            : options.input_dir,
-        "processed-tweets-dir" : options.processed_tweets_dir,
-        "verbosity"            : options.verbosity,
-        "labels"               : options.selected_labels,
-        "output-dir"           : options.output_dir,
-        "features"             : options.selected_features,
-        "classifier"           : options.selected_classifier,
-        "cross-validation"     : options.cross_validation
+        "input-dir"            : args.input_dir,
+        "processed-tweets-dir" : args.processed_tweets_dir,
+        "verbosity"            : args.verbosity,
+        "labels"               : args.selected_labels,
+        "output-dir"           : args.output_dir,
+        "features"             : args.selected_features,
+        "classifier"           : args.selected_classifier,
+        "cross-validation"     : args.cross_validation
         }
 
     from act_trainer import train
