@@ -2,6 +2,7 @@ import numpy as np
 from utils import abort_clean
 # Transformers
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.decomposition import TruncatedSVD
 
 
 
@@ -37,6 +38,10 @@ def get_features_extr(features_str, verbose=1):
 
     elif features_str == "tfidf":
         feat_extractors = get_tfidf()
+
+    elif features_str == "lsa":
+        #abort_clean("LSA is unstable for now")
+        feat_extractors = get_lsa()
     
     else :
         abort_clean("Unknown features extractor.")
@@ -64,7 +69,7 @@ def get_wc2(config=None):
     '''
 
     if not (config):
-        wc2 = CountVectorizer(
+        wc2 = CountVectorizer( #---------------------- Default Values
             input='content',
             encoding='utf-8',
             decode_error='ignore',
@@ -72,12 +77,12 @@ def get_wc2(config=None):
             analyzer='word',
             preprocessor=None,
             tokenizer=None,
-            ngram_range=(1, 2), #-(1, 1)-------#
+            ngram_range=(1, 2), #--------------------- (1, 1)
             stop_words=None,
             lowercase=True,
             token_pattern=r"(?u)\b\w\w+\b",
             max_df=1.0,
-            min_df=2, #-1----------------------#
+            min_df=2, #------------------------------- 1
             max_features=None,
             vocabulary=None,
             binary=False,
@@ -105,4 +110,26 @@ def get_tfidf(config=None):
 
         tfidf_transform_name = "tfidf-default"
         res = wc2 + [(tfidf_transform_name, tfidf_transform)]
+        return res
+
+
+def get_lsa(config=None):
+    '''
+    Returns a latent semantic analysis vectorizer.
+    If specified, follows the config to setup the vectorizer
+    Else follows default lsa setup.
+    '''
+
+    if not (config):
+        tfidf = get_tfidf()
+        lsa = TruncatedSVD( #------------------------- Default Values
+            n_components=1000, #---------------------- 2
+            algorithm="randomized",
+            n_iter=10,
+            random_state=42,
+            tol=0.
+        )
+
+        lsa_name = "lsa-default"
+        res = tfidf + [(lsa_name, lsa)]
         return res

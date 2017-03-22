@@ -34,8 +34,7 @@ def train(options) :
 
     #--------------------------------------------------------------------------
     # Check basic requirements
-    if not ('l' in options["labels"] or 'g' in options["labels"] or 
-            'v' in options["labels"]):
+    if not (options["labels"]):
         abort_clean("Labels not specified", "expected 'l', 'g' or 'v'")
     
     if not (options["features"]):
@@ -47,7 +46,7 @@ def train(options) :
 
     #--------------------------------------------------------------------------
     # Load the tweets
-    if 'l' in options["labels"] : 
+    if 'l' in options["labels"] or "language" in options["labels"]: 
         # load all tweets for language classification
         Authors = parse_tweets_from_main_dir(
             input_dir=options["input-dir"], 
@@ -68,9 +67,7 @@ def train(options) :
     # Build the corpus and label the tweets
     corpus, labels = build_corpus(
         authors=Authors, 
-        label_lang=('l' in options["labels"]), 
-        label_variety=('v' in options["labels"]), 
-        label_gender=('g' in options["labels"]), 
+        labels=options["labels"],
         shuffle=False, 
         verbosity_level=options["verbosity"])
 

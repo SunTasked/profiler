@@ -13,8 +13,7 @@ def get_printable_tweet(tweet_text):
     return re.sub(u'[^\x00-\x7f]',u'', tweet_text)
 
 
-def build_corpus(authors, label_lang=True, label_variety=True, 
-                 label_gender=True, shuffle=True, verbosity_level=1):
+def build_corpus(authors, labels, shuffle=True, verbosity_level=1):
     '''
     Given an Author object this function returns a corpus of tweet labelled
     Labels can be set with the gender_label and age_label
@@ -25,7 +24,7 @@ def build_corpus(authors, label_lang=True, label_variety=True,
     if verbosity_level:
         print("Starting Corpus Building ...")
 
-    if not(label_lang or label_variety or label_gender):
+    if not(labels):
         print("Corpus Building --- failure")
         print("No label selected.")
         return None
@@ -33,27 +32,27 @@ def build_corpus(authors, label_lang=True, label_variety=True,
     # Building tweet Corpus
     t0 = time.time()
     tweets = []
-    labels = []
+    corpus_labels = []
     indexes = []
 
     for author in authors:
 
         label = ''
-        if label_lang:
+        if labels == 'l'  or labels == 'language':
             label += author["lang"] + " "
-        if label_variety:
+        elif labels == 'v'  or labels == 'variety':
             label += author["variety"] + " "
-        if label_gender:
+        elif labels == 'g'  or labels == 'gender':
             label += author["gender"] + " "
         label = label[:-1]
 
         for idx, tweet in enumerate(author["tweets"]):
             tweets.append(tweet)
             indexes.append(idx)
-            labels.append(label)
+            corpus_labels.append(label)
     
-    labels_unique = list(set(labels))
-    corpus = DataFrame({"tweets" : tweets, "class" : labels}, index=indexes)
+    labels_unique = list(set(corpus_labels))
+    corpus = DataFrame({"tweets" : tweets, "class" : corpus_labels}, index=indexes)
 
     if shuffle :
         corpus = corpus.reindex(numpy.random.permutation(corpus.index))

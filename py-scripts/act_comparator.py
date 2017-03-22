@@ -29,8 +29,7 @@ def compare(options):
 
     #--------------------------------------------------------------------------
     # Check basic requirements
-    if not ('l' in options["labels"] or 'g' in options["labels"] or 
-            'v' in options["labels"]):
+    if not (options["labels"]):
         abort_clean("Labels not specified", "expected 'l', 'g' or 'v'")
     
     if not (options["features"]):
@@ -45,7 +44,7 @@ def compare(options):
 
     #--------------------------------------------------------------------------
     # Load the tweets
-    if 'l' in options["labels"] : 
+    if 'l' in options["labels"] or "language" in options["labels"]: 
         # load all tweets for language classification
         Authors = parse_tweets_from_main_dir(
             input_dir=options["input-dir"], 
@@ -66,9 +65,7 @@ def compare(options):
     # Build the corpus and label the tweets
     corpus, labels = build_corpus(
         authors=Authors, 
-        label_lang=('l' in options["labels"]), 
-        label_variety=('v' in options["labels"]), 
-        label_gender=('g' in options["labels"]), 
+        labels=options["labels"],
         shuffle=False, 
         verbosity_level=options["verbosity"])
 
@@ -163,11 +160,13 @@ def compare(options):
                     pipeline=pipeline, 
                     verbose=False)
             except:
-                print("some error occured - the features extracted and the classifier are problably incompatible\n")
+                print("some error occured - the features extracted and the \
+                    classifier are problably incompatible\n")
                 continue
             
             if options["verbosity"]:
-                print("Training complete in " + str(round(time() - t0_step)) + " seconds")
+                print("Training complete in " + str(round(time() - t0_step)) +
+                     " seconds")
                 print_scores(step_scores)
                 print()
             
@@ -182,9 +181,12 @@ def compare(options):
             Time_train[idx_extr][idx_clf] = round(time() - t0_step)
     
     # Save final micro and macro measuresand execution time
-    save_comparison_table(F1_micro, extractors, classifiers, output_dir + "micro.csv")
-    save_comparison_table(F1_macro, extractors, classifiers, output_dir + "macro.csv")
-    save_comparison_table(Time_train, extractors, classifiers, output_dir + "time.csv")
+    save_comparison_table(F1_micro, extractors, classifiers, output_dir +
+        "micro.csv")
+    save_comparison_table(F1_macro, extractors, classifiers, output_dir +
+        "macro.csv")
+    save_comparison_table(Time_train, extractors, classifiers, output_dir +
+        "time.csv")
 
     if options["verbosity"]:
         print("Comparison task complete in " + str(round(time()-t0)) + " s")
