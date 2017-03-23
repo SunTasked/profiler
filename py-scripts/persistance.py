@@ -1,9 +1,13 @@
 from json import load, dumps
 
 from sklearn.externals import joblib
-import numpy
 
-from utils import create_dir, get_classifier_name, get_features_extr_name
+from utils import get_classifier_name, get_features_extr_name
+
+
+#------------------------------------------------------------------------------
+#---------------------------- PERSISTANCE MODULE ------------------------------
+#------------------------------------------------------------------------------
 
 
 def save_model(pipeline, output_dir, filename, verbose):

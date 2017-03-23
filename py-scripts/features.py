@@ -1,10 +1,13 @@
 import numpy as np
-from utils import abort_clean
-# Transformers
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+
+from utils import abort_clean
 
 
+#------------------------------------------------------------------------------
+#------------------ AUTOMATED FEATURES EXTRACTORS FETCHER ---------------------
+#------------------------------------------------------------------------------
 
 def get_features_extr(features_str, verbose=1):
     '''
@@ -55,12 +58,13 @@ def get_features_extr(features_str, verbose=1):
 
 
 
-
 #------------------------------------------------------------------------------
-#------------------------------ FEATURES EXTRACTORS ---------------------------
+#--------------------- FEATURES EXTRACTORS CONFIGURATORS ----------------------
 #------------------------------------------------------------------------------
 
 
+# Word Count (unigram and bigram)
+#------------------------------------------------------------------------------
 def get_wc2(config=None):
     '''
     Returns a word count (bigram) vectorizer.
@@ -93,6 +97,8 @@ def get_wc2(config=None):
         return res
 
 
+# Term Frequency - Inverse Document Frequency
+#------------------------------------------------------------------------------
 def get_tfidf(config=None):
     '''
     Returns a tfidf vectorizer.
@@ -113,6 +119,8 @@ def get_tfidf(config=None):
         return res
 
 
+# Latent Semantic Analysis
+#------------------------------------------------------------------------------
 def get_lsa(config=None):
     '''
     Returns a latent semantic analysis vectorizer.

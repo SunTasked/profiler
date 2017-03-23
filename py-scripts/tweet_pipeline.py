@@ -1,5 +1,10 @@
 from sklearn.pipeline import Pipeline
 
+
+#------------------------------------------------------------------------------
+#------------------------ AUTOMATED PIPELINE BUILDER --------------------------
+#------------------------------------------------------------------------------
+
 def get_pipeline(features_extr, classifier, verbose=1):
     '''
     Builds an execution pipeline from the features extractors and the 

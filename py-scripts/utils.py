@@ -1,8 +1,14 @@
-import time
+import os
+import re
+from time import time
+
 import numpy
 from pandas import DataFrame
-import re
-import os
+
+
+#------------------------------------------------------------------------------
+#---------------------------- UTILITIES MODULE --------------------------------
+#------------------------------------------------------------------------------
 
 
 def get_printable_tweet(tweet_text):
@@ -30,7 +36,7 @@ def build_corpus(authors, labels, shuffle=True, verbosity_level=1):
         return None
 
     # Building tweet Corpus
-    t0 = time.time()
+    t0 = time()
     tweets = []
     corpus_labels = []
     indexes = []
@@ -64,7 +70,7 @@ def build_corpus(authors, labels, shuffle=True, verbosity_level=1):
 
     if verbosity_level :
         print("Corpus Building --- success in : " + 
-            "{0:.2f}".format(time.time() - t0) + " seconds" + "\n")
+            "{0:.2f}".format(time() - t0) + " seconds" + "\n")
 
 
     # At this point, the corpus is a table with 2 columns:

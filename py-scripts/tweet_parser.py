@@ -1,13 +1,16 @@
-#!/usr/bin/env python
-
-import xml.etree.ElementTree as ET
-import re
-import time
+import html
 from os import listdir, walk
 from os.path import isfile, join
-import html
+import re
+from time import time
+import xml.etree.ElementTree as ET
 
 from utils import get_printable_tweet
+
+
+#------------------------------------------------------------------------------
+#------------------------------ PARSING MODULE --------------------------------
+#------------------------------------------------------------------------------
 
 def process_text(tweet):
     '''
@@ -112,7 +115,7 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
 
     # vars
     Authors = []
-    t0 = time.time()
+    t0 = time()
     n_files = 0
     n_files_parsed = 0
     n_files_filtered = 0
@@ -126,7 +129,7 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
     # ---------------------------- FILES LISTING
     
     if verbosity_level:
-        t0 = time.time()
+        t0 = time()
         print ("Starting files Listing ...")
     try:
         xml_files = [f for f in listdir(input_dir) if (
@@ -138,12 +141,12 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
 
     if verbosity_level:
         print("Files found : " + str(len(xml_files)))
-        print("Files listing --- success in %.3f seconds\n"  %(time.time()-t0))
+        print("Files listing --- success in %.3f seconds\n"  %(time()-t0))
 
 
     # ---------------------------- FILES PROCESSING
     if verbosity_level:
-        t0 = time.time()
+        t0 = time()
         print ("Starting files processing ...")
     
     n_files = len(xml_files)
@@ -169,13 +172,13 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
     if verbosity_level :
         print("Parsed files : " + str(n_files_parsed) + " out of " + 
             str(n_files))
-        print("Files Parsing --- success in %.3f seconds\n"  %(time.time()-t0))
+        print("Files Parsing --- success in %.3f seconds\n"  %(time()-t0))
 
 
     # ---------------------------- AUTHOR ATTRIBUTES RETRIEVING
 
     if verbosity_level:
-        t0 = time.time()
+        t0 = time()
         print ("Starting Author Attributes Retrieval ...")
     try:
         truth_file = open(input_dir + "truth.txt")
@@ -206,12 +209,12 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
         print("Retreived Information : " + str(n_files_infos_retrieved) + 
             " out of " + str(n_files))
         print("Author Attributes Retrieval --- success in %.3f seconds\n"  
-            % (time.time() - t0))
+            % (time() - t0))
 
 
     # ---------------------------- TWEET FILTERING:
     if verbosity_level :
-        t0 = time.time()
+        t0 = time()
         print("Starting Tweets Filtering ...")
 
     for author in Authors :
@@ -230,7 +233,7 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
         print("Filtered files : " + str(n_files_filtered) + " out of " + 
             str(n_files))
         print("Tweets Filtering --- success in %.3f seconds\n"  
-            % (time.time() - t0))
+            % (time() - t0))
 
 
     # ---------------------------- RETURNING PROCESSED DATA
@@ -257,7 +260,7 @@ def parse_tweets_from_main_dir (input_dir, output_dir=None, verbosity_level=1) :
 
     # vars
     Authors = []
-    t0 = time.time()
+    t0 = time()
     n_files = 0
     n_files_parsed = 0
 
@@ -289,7 +292,7 @@ def parse_tweets_from_main_dir (input_dir, output_dir=None, verbosity_level=1) :
         print("Total tweets available for learning : " + 
             str(sum([len(a["tweets"]) for a in Authors])))
         print("Parsing of main directory --- success in %.3f seconds"  
-            % (time.time() - t0))
+            % (time() - t0))
         print("--------------------------------------")
 
     return Authors

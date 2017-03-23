@@ -1,10 +1,11 @@
-from twython import Twython
 import html
-import xml.etree.ElementTree as ET
-import re
-import time
 from os import listdir
 from os.path import isfile, join
+import re
+import time
+import xml.etree.ElementTree as ET
+
+from twython import Twython
 
 
 CONSUMER_KEY = "key"

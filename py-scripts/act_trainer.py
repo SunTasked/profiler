@@ -1,17 +1,17 @@
 from time import time
-from sklearn.base import clone
-import numpy
 
+from numpy import array
+from sklearn.base import clone
 from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import KFold
 
-from tweet_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
-from utils import build_corpus, abort_clean, format_dir_name, print_scores
-from utils import get_classifier_name, get_features_extr_name
 from classifiers import get_classifier
 from features import get_features_extr
-from tweet_pipeline import get_pipeline
 from persistance import save_model, save_scores
+from tweet_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
+from tweet_pipeline import get_pipeline
+from utils import build_corpus, abort_clean, format_dir_name, print_scores
+from utils import get_classifier_name, get_features_extr_name
 
 
 #------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ def train_model_cross_validation(corpus, labels, pipeline, verbose=1):
         t0 = time()
         print("Starting model Cross Validation ... (this may take some time)")
 
-    confusion = numpy.array(
+    confusion = array(
         [[0 for x in range(len(labels))] for y in range(len(labels))])
     scores = []
     best_f_score = 0

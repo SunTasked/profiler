@@ -1,13 +1,15 @@
-from utils import abort_clean
-
-# Classifiers
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVC
-from sklearn.ensemble import RandomForestClassifier
 
 from persistance import load_config
+from utils import abort_clean
 
+
+#------------------------------------------------------------------------------
+#----------------------- AUTOMATED CLASSIFIERS FETCHER ------------------------
+#------------------------------------------------------------------------------
 
 def get_classifier(classifier_str, config=None, verbose=1):
     '''
@@ -67,6 +69,10 @@ def get_classifier(classifier_str, config=None, verbose=1):
     res = (clf_name, clf)
     return res
 
+
+#------------------------------------------------------------------------------
+#------------------------- CLASSIFIERS CONFIGURATORS --------------------------
+#------------------------------------------------------------------------------
 
 def get_svm(config=None):
     '''
