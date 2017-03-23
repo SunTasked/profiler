@@ -8,8 +8,8 @@ from sklearn.model_selection import KFold
 from classifiers import get_classifier
 from features import get_features_extr
 from persistance import save_model, save_scores
-from tweet_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
-from tweet_pipeline import get_pipeline
+from dataset_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
+from pipeline import get_pipeline
 from utils import build_corpus, abort_clean, format_dir_name, print_scores
 from utils import get_classifier_name, get_features_extr_name
 

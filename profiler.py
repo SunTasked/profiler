@@ -60,7 +60,7 @@ if usr_request not in available_requests:
 ########### Program Start #############
 #######################################
 
-from tweet_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
+from dataset_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
 from utils import build_corpus
 
 #------------------------------------------------------------------------------
