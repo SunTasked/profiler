@@ -82,7 +82,10 @@ def compare(options):
     else :
         classifier_str_list = [options["classifier"]]
 
-    classifiers = [get_classifier(clf,False) for clf in classifier_str_list]
+    classifiers = [ get_classifier(
+                        classifier_str=clf,
+                        config=None,
+                        verbose=False) for clf in classifier_str_list]
 
     if options["verbosity"]:
         print("Classifiers Loaded: ")

@@ -1,3 +1,5 @@
+from json import load, dumps
+
 from sklearn.externals import joblib
 import numpy
 
@@ -85,3 +87,14 @@ def save_comparison_table(table, extractors, classifiers, filepath):
         file.write(str_row)
     
     file.close()
+
+
+def load_config(file_path):
+    '''
+    Loads a configuration file given a file_path.
+    Returns the config object extracted.
+    Will raise an Exception if the file can't be loaded.
+    '''
+    config_file = open(file_path)
+    config = load(config_file)
+    return config

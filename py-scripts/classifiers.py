@@ -6,8 +6,10 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 
+from persistance import load_config
 
-def get_classifier(classifier_str, verbose=1):
+
+def get_classifier(classifier_str, config=None, verbose=1):
     '''
     Returns a classifier specified in parameter
     Available classifiers are :
@@ -21,9 +23,10 @@ def get_classifier(classifier_str, verbose=1):
         - by a path to a config file, --> a custom ft_extr will be instanciated
     '''
 
-    if(verbose):
+    if verbose and not(config):
         print("Starting loading classifier ... ")
-
+    if config:
+        classifier_str = config["classifier_type"]
     
     #--------------------------------------------------------------------------
     # Get required classifier
@@ -32,19 +35,28 @@ def get_classifier(classifier_str, verbose=1):
     clf = None
 
     if classifier_str == "svm":
-        clf_name, clf = get_svm()
+        clf_name, clf = get_svm(config)
     
     elif classifier_str == "mlp":
-        clf_name, clf = get_mlp()
+        clf_name, clf = get_mlp(config)
 
     elif classifier_str == "nbb":
-        clf_name, clf = get_nbb()
+        clf_name, clf = get_nbb(config)
 
     elif classifier_str == "rfo":
-        clf_name, clf = get_rfo()
+        clf_name, clf = get_rfo(config)
 
     else:
-        abort_clean("Unknown classifier.")
+        try: 
+            config = load_config(classifier_str)
+        except:
+            abort_clean("Cannot load the classifier configuration",
+                "Either the clf name is incorrect or the path is invalid : " +
+                classifier_str)
+
+        # recursive call with config loaded
+        return get_classifier("", config, verbose=verbose)
+
 
     
     #--------------------------------------------------------------------------
@@ -62,7 +74,11 @@ def get_svm(config=None):
     If specified, follows the config to setup the svm
     Else follows default svm setup.
     '''
-    if not (config):
+    clf_name = ""
+    clf = None
+
+    if not(config):
+        clf_name = "svm-default"
         clf = LinearSVC( #---------------------------- Default Value
                     C=1.0,
                     loss='squared_hinge',
@@ -75,10 +91,18 @@ def get_svm(config=None):
                     class_weight=None,
                     verbose=0,
                     random_state=None,
-                    max_iter=500 #-------------------- 1000
-                    ) 
-        clf_name = "svm-default"
-        return clf_name, clf
+                    max_iter=500) #-------------------- 1000 
+
+    else:
+        clf_name = config["classifier_name"]
+        try:
+            clf = LinearSVC(**(config["configuration"]))
+        except:
+            abort_clean("Classifier configuration failed",
+                "Configuring " + config["classifier_type"] + " with : " + 
+                config["configuration"])
+        
+    return clf_name, clf
 
 
 def get_mlp(config=None):
@@ -87,7 +111,11 @@ def get_mlp(config=None):
     If specified, follows the config to setup the mlp classifier
     Else follows default mlp classifier setup.
     '''
+    clf_name = ""
+    clf = None
+
     if not (config):
+        clf_name = "mlp-default"
         clf = MLPClassifier(
             hidden_layer_sizes=(100,),
             activation="relu",
@@ -109,10 +137,20 @@ def get_mlp(config=None):
             validation_fraction=0.1,
             beta_1=0.9,
             beta_2=0.999,
-            epsilon=1e-8
-        )
-        clf_name = "mlp-default"
-        return clf_name, clf
+            epsilon=1e-8)
+
+    else:
+        clf_name = config["classifier_name"]
+        try:
+            config["configuration"]["hidden_layer_sizes"] = tuple(
+                config["configuration"]["hidden_layer_sizes"] )
+            clf = MLPClassifier(**(config["configuration"]))
+        except:
+            abort_clean("Classifier configuration failed",
+                "Configuring " + config["classifier_type"] + " with : " + 
+                config["configuration"])
+
+    return clf_name, clf
 
 
 def get_nbb(config=None):
@@ -121,15 +159,27 @@ def get_nbb(config=None):
     If specified, follows the config to setup the NB classifier
     Else follows default NB classifier setup.
     '''
+    clf_name = ""
+    clf = None
+
     if not (config):
+        clf_name = "nbb-default"
         clf = BernoulliNB(
             alpha=1.0,
             binarize=.0,
             fit_prior=True,
-            class_prior=None
-        )
-        clf_name = "nbb-default"
-        return clf_name, clf
+            class_prior=None)
+
+    else:
+        clf_name = config["classifier_name"]
+        try:
+            clf = BernoulliNB(**(config["configuration"]))
+        except:
+            abort_clean("Classifier configuration failed",
+                "Configuring " + config["classifier_type"] + " with : " + 
+                config["configuration"])
+        
+    return clf_name, clf
 
 
 def get_rfo(config=None):
@@ -138,7 +188,11 @@ def get_rfo(config=None):
     If specified, follows the config to setup the NB classifier
     Else follows default NB classifier setup.
     '''
+    clf_name = ""
+    clf = None
+
     if not (config):
+        clf_name = "rfo-default"
         clf = RandomForestClassifier(
             n_estimators=10,
             criterion="gini",
@@ -155,7 +209,16 @@ def get_rfo(config=None):
             random_state=None,
             verbose=0,
             warm_start=False,
-            class_weight=None
-        )
-        clf_name = "rfo-default"
-        return clf_name, clf
+            class_weight=None)
+
+    else:
+        clf_name = config["classifier_name"]
+        try:
+            clf = RandomForestClassifier(**(config["configuration"]))
+        except:
+            abort_clean("Classifier configuration failed",
+                "Configuring " + config["classifier_type"] + " with : " + 
+                config["configuration"])
+        
+    return clf_name, clf
+

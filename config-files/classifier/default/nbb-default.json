@@ -1,0 +1,10 @@
+{
+    "classifier_type" : "nbb",
+    "classifier_name" : "nbb-default",
+    "configuration"   : {
+        "alpha":1.0,
+        "binarize":0.0,
+        "fit_prior":true,
+        "class_prior":null
+    }
+}

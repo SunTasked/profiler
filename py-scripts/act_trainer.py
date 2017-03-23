@@ -81,6 +81,7 @@ def train(options) :
     t0 = time()
     classifier = get_classifier(
         classifier_str=options["classifier"][0],
+        config=None,
         verbose=options["verbosity"])
 
 

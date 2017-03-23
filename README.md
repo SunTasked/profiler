@@ -1,4 +1,4 @@
-# Profiler v1.0
+# Profiler v1.1
 author profiler tool using the scikit-learn library
 
 
@@ -55,15 +55,14 @@ Not yet implemented
 | --processed-tweets-dir | no                      | output directory into which the processed tweets will be stored                                                                                                                                        | path to the output directory (tweets)                  |
 | -v, --verbosity        | no                      | verbosity level : from 0 (quiet) to 3 (noisy)                                                                                                                                                          | [0;3]                                                  |
 
-**Note**: if you wish to use multiple classifiers and/or multiple sets of features you need to specify each one of them by using the related option (i.e for selecting both svm and mlp for comparison you need to call the *--classifier* option twice)\
+**Note**: if you wish to use multiple classifiers and/or multiple sets of features you need to specify each one of them by using the related option (i.e for selecting both svm and mlp for comparison you need to call the *--classifier* option twice)
 
 **Exemple** (windows) : python profiler.py compare --labels l --classifier nbb --classifier svm --features wc2 --features tfidf --in ./training-data/pan10-03-17 --output-dir ./output/pan17/lang --verbosity 1
 
 
 ## Classifiers
 
-Below is a list of classifiers currently implemented as default.\
-Note v1.0: loading the classifiers with a config file is not implemented yet
+Below is a list of classifiers currently implemented as default.
 
 | Classifier               | Code | sklearn implementation                                                                                                                                                                                                                                                                                                                                                                               | Details                                                                             |
 |--------------------------|------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
@@ -75,7 +74,7 @@ Note v1.0: loading the classifiers with a config file is not implemented yet
 ## Features
 
 Below is a list of features extractors currently implemented as default.\
-Note v1.0: loading the features extractors with a config file is not implemented yet
+Note v1.1: loading the features extractors with a config file is not implemented yet
 
 | Features Extractor                          | code  | sklearn implementation                                                                                                                                                                                                                                                                                                           | Details                                                                                                 |
 |---------------------------------------------|-------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|

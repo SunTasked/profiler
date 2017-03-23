@@ -28,8 +28,8 @@ parser.add_argument("--in","--input-dir", type=str, dest="input_dir",
                     exctracted")
 parser.add_argument("--out","--output-dir", type=str, dest="output_dir",
                     default='./',
-                    help="specify the directory in which the result files will \
-                    be saved (default is current dir)")
+                    help="specify the directory in which the result files \
+                    will be saved")
 parser.add_argument("--no-cross-validation",  action='store_false',
                     dest="cross_validation", default=True,
                     help="specify if you want to cross validate your model")
@@ -40,7 +40,8 @@ parser.add_argument("--processed-tweets-dir", type=str,
                     dest="processed_tweets_dir", default='',
                     help="specify the directory from which the tweets will be \
                     exctracted")
-parser.add_argument("-v", "--verbosity",  type=integer, dest="verbosity", default=1,
+parser.add_argument("-v", "--verbosity",  type=integer, dest="verbosity", 
+                    default=1,
                     help="define the verbosity level that you need \
                     (0 is minimal, 3 is maximal)")
     
@@ -54,7 +55,7 @@ if usr_request not in available_requests:
     print("ERROR : Unknown user request.")
     print("        Request found : " + usr_request)
     exit()
-print(args)
+    
 #######################################
 ########### Program Start #############
 #######################################
