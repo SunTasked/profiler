@@ -2,7 +2,8 @@ import numpy as np
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
-from utils import abort_clean
+from persistance import load_config
+from utils import abort_clean, get_features_extr_name
 
 
 #------------------------------------------------------------------------------
@@ -17,46 +18,71 @@ def get_features_extr(features_str, verbose=1):
         - wc1   : Word count - unigram (TODO)
         - wc2   : Word count - bigram
         - tfidf : TF-IDF
-        - lsa   : Latent Semantic Analysis (TODO)
+        - lsa   : Latent Semantic Analysis
 
     A feature extractor can be specified :
         - by its name --> a default clf will be instanciated
-        - by a path to a config file, --> a custom clf will be instanciated (TODO)
+        - by a path to a config file, --> a custom clf will be instanciated
     '''
+    feat_extractors = []
 
     #--------------------------------------------------------------------------
-    # Check basic requirements
-
+    # Get required features_extractor
 
     if(verbose):
         print("Starting loading features extractor ... ")
 
-    
-    #--------------------------------------------------------------------------
-    # Get required features_extractor
-    feat_extractors = []
-
     if features_str == "wc2":
-        feat_extractors = get_wc2()
+        feat_extractors.append(get_wc2(None))
 
     elif features_str == "tfidf":
-        feat_extractors = get_tfidf()
+        feat_extractors.append(get_wc2(None))
+        feat_extractors.append(get_tfidf(None))
 
     elif features_str == "lsa":
-        #abort_clean("LSA is unstable for now")
-        feat_extractors = get_lsa()
+        feat_extractors.append(get_wc2(None))
+        feat_extractors.append(get_tfidf(None))
+        feat_extractors.append(get_lsa(None))
     
     else :
-        abort_clean("Unknown features extractor.")
-    
+        try: 
+            config = load_config(features_str)
+        except:
+            abort_clean("Cannot load the extractors configuration",
+                "Either extr name is incorrect or path is invalid : " +
+                features_str)
+        # Load the config from a file
+        if verbose:
+            print("Loading features extractor config from file ")
+        feat_extractors = get_features_extr_from_file(config, verbose=verbose)
+
     #--------------------------------------------------------------------------
     # Return features extractors
     if(verbose):
-        print("features extractor loaded: '" + 
-            "' + '".join([x[0] for x in feat_extractors]) + "'\n")
+        print("features extractor loaded: " + 
+             get_features_extr_name(feat_extractors) + "\n")
+
     return feat_extractors
 
 
+def get_features_extr_from_file(config, verbose=None):
+    '''
+    Returns a list of feature extractors following the given configuration
+    '''
+    feat_extractors = []
+
+    # get each extractor separately 
+    for extr_conf in config["extractors"]:
+        if extr_conf["extractr_type"] == "wc2":
+            feat_extractors.append(get_wc2(extr_conf))
+
+        elif extr_conf["extractr_type"] == "tfidf":
+            feat_extractors.append(get_tfidf(extr_conf))
+
+        elif extr_conf["extractr_type"] == "lsa":
+            feat_extractors.append(get_lsa(extr_conf))
+
+    return feat_extractors
 
 #------------------------------------------------------------------------------
 #--------------------- FEATURES EXTRACTORS CONFIGURATORS ----------------------
@@ -71,9 +97,12 @@ def get_wc2(config=None):
     If specified, follows the config to setup the vectorizer
     Else follows default wc2 setup.
     '''
+    extractr_name = ""
+    extractr = None
 
     if not (config):
-        wc2 = CountVectorizer( #---------------------- Default Values
+        extractr_name = "wc2-default"
+        extractr = CountVectorizer( #---------------------- Default Values
             input='content',
             encoding='utf-8',
             decode_error='ignore',
@@ -91,10 +120,23 @@ def get_wc2(config=None):
             vocabulary=None,
             binary=False,
             dtype=np.int64)
-        
-        wc2_name = "wc2-default"
-        res = [(wc2_name, wc2)]
-        return res
+
+    else:
+        extractr_name = config["extractr_name"]
+        try:
+            # Adjustements due to JSON incompatibility
+            config["configuration"]["ngram_range"] = tuple(
+                config["configuration"]["ngram_range"] )
+            config["configuration"]["dtype"] = np.int64
+
+            extractr = CountVectorizer(**(config["configuration"]))
+        except:
+            abort_clean("Features Extractor configuration failed",
+                "Configuring " + config["extractr_type"] + " with : " + 
+                config["configuration"])
+
+    res = (extractr_name, extractr)
+    return res
 
 
 # Term Frequency - Inverse Document Frequency
@@ -105,18 +147,28 @@ def get_tfidf(config=None):
     If specified, follows the config to setup the vectorizer
     Else follows default tfidf setup.
     '''
+    extractr_name = ""
+    extractr = None
 
     if not (config):
-        wc2 = get_wc2()
-        tfidf_transform = TfidfTransformer(
+        extractr_name = "tfidf-default"
+        extractr = TfidfTransformer(
             norm='l2',
             use_idf=True,
             smooth_idf=True,
             sublinear_tf=False)
 
-        tfidf_transform_name = "tfidf-default"
-        res = wc2 + [(tfidf_transform_name, tfidf_transform)]
-        return res
+    else:
+        extractr_name = config["extractr_name"]
+        try:
+            extractr = TfidfTransformer(**(config["configuration"]))
+        except:
+            abort_clean("Features Extractor configuration failed",
+                "Configuring " + config["extractr_type"] + " with : " + 
+                config["configuration"])
+
+    res = (extractr_name, extractr)
+    return res
 
 
 # Latent Semantic Analysis
@@ -127,10 +179,12 @@ def get_lsa(config=None):
     If specified, follows the config to setup the vectorizer
     Else follows default lsa setup.
     '''
+    extractr_name = ""
+    extractr = None
 
     if not (config):
-        tfidf = get_tfidf()
-        lsa = TruncatedSVD( #------------------------- Default Values
+        extractr_name = "lsa-default"
+        extractr = TruncatedSVD( #------------------------- Default Values
             n_components=1000, #---------------------- 2
             algorithm="randomized",
             n_iter=10,
@@ -138,6 +192,14 @@ def get_lsa(config=None):
             tol=0.
         )
 
-        lsa_name = "lsa-default"
-        res = tfidf + [(lsa_name, lsa)]
-        return res
+    else:
+        extractr_name = config["extractr_name"]
+        try:
+            extractr = TruncatedSVD(**(config["configuration"]))
+        except:
+            abort_clean("Features Extractor configuration failed",
+                "Configuring " + config["extractr_type"] + " with : " + 
+                config["configuration"])
+
+    res = (extractr_name, extractr)
+    return res

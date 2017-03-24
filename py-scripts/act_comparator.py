@@ -102,8 +102,9 @@ def compare(options):
     else :
         extractors_str_list = [options["features"]]
 
-    extractors = [get_features_extr(extr,False) for extr 
-                    in extractors_str_list]
+    extractors = [get_features_extr(
+        features_str=extr,
+        verbose=False ) for extr in extractors_str_list]
 
     if options["verbosity"]:
         print("Features extractors Loaded: ")

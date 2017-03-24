@@ -1,6 +1,5 @@
-# Profiler v1.1
+# Profiler v1.2
 author profiler tool using the scikit-learn library
-
 
 ## Usage :
 | OS      | Command Line                                            |
@@ -73,8 +72,7 @@ Below is a list of classifiers currently implemented as default.
 
 ## Features
 
-Below is a list of features extractors currently implemented as default.\
-Note v1.1: loading the features extractors with a config file is not implemented yet
+Below is a list of features extractors currently implemented as default.
 
 | Features Extractor                          | code  | sklearn implementation                                                                                                                                                                                                                                                                                                           | Details                                                                                                 |
 |---------------------------------------------|-------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|

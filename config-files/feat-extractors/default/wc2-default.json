@@ -1,0 +1,28 @@
+{
+    "extractors_pipeline_name":"wc2-default-file",
+    "extractors"   : [
+        {
+            "extractr_name" : "wc2-default",
+            "extractr_type" : "wc2",
+            "configuration" : {
+                "input":"content",
+                "encoding":"utf-8",
+                "decode_error":"ignore",
+                "strip_accents":null,
+                "analyzer":"word",
+                "preprocessor":null,
+                "tokenizer":null,
+                "ngram_range":[1, 2],
+                "stop_words":null,
+                "lowercase":true,
+                "token_pattern":"(?u)\\b\\w\\w+\\b",
+                "max_df":1.0,
+                "min_df":2,
+                "max_features":null,
+                "vocabulary":null,
+                "binary":false
+            }
+        }
+
+    ]
+}
