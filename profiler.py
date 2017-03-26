@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 # add path to the python scripts
 sys.path.insert(0, './py-scripts')
-from utils import integer
+from utils import integer, abort_clean
 
 ########################################
 ########### Argument Parser ############
@@ -18,9 +18,9 @@ parser.add_argument("-l", "--labels",  type=str, dest="selected_labels",
                     data (combinations are available) \
                     ['l' for language - 'v' for variety - 'g' for gender]")
 parser.add_argument("-c", "--classifier", action='append',
-                    dest="selected_classifier", default=[],
+                    dest="classifier", default=[],
                     help="The selected classification algorithm")
-parser.add_argument("-f", "--features", dest="selected_features",
+parser.add_argument("-f", "--features", dest="features",
                     default=[], action='append',
                     help="The selected set of features")
 parser.add_argument("--in","--input-dir", type=str, dest="input_dir",
@@ -30,6 +30,10 @@ parser.add_argument("--out","--output-dir", type=str, dest="output_dir",
                     default='./',
                     help="specify the directory in which the result files \
                     will be saved")
+parser.add_argument("--hyper-parameters",  type=str, dest="hyper_parameters",
+                    default="",
+                    help="specify a config file listing the hyper parameters \
+                    to be tuned")
 parser.add_argument("--no-cross-validation",  action='store_false',
                     dest="cross_validation", default=True,
                     help="specify if you want to cross validate your model")
@@ -45,16 +49,10 @@ parser.add_argument("-v", "--verbosity",  type=integer, dest="verbosity",
                     help="define the verbosity level that you need \
                     (0 is minimal, 3 is maximal)")
     
+
 args = parser.parse_args(sys.argv)
-
-
 usr_request = args.action
-available_requests = ["train", "classify", "optimize", "compare"]
 
-if usr_request not in available_requests:
-    print("ERROR : Unknown user request.")
-    print("        Request found : " + usr_request)
-    exit()
     
 #######################################
 ########### Program Start #############
@@ -72,22 +70,22 @@ if usr_request == "compare":
     print()
 
     # Options available :
+    #   - classifier           : classifiers code / path to config file
+    #   - features             : features extractors code / path to config file
     #   - input-dir            : input directory for tweet loading
+    #   - labels               : which labels to train on
+    #   - output-dir           : output directory for results persistance
     #   - processed-tweets-dir : output directory for parsed tweet
     #   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
-    #   - labels               : which label to train on
-    #   - output-dir           : output directory for results persistance
-    #   - features             : selected features for extraction
-    #   - classifier           : selected classifiers for training or load
 
     compare_opt = {
+        "classifier"           : args.classifier,
+        "features"             : args.features,
         "input-dir"            : args.input_dir,
-        "processed-tweets-dir" : args.processed_tweets_dir,
-        "verbosity"            : args.verbosity,
         "labels"               : args.selected_labels,
         "output-dir"           : args.output_dir,
-        "features"             : args.selected_features,
-        "classifier"           : args.selected_classifier
+        "processed-tweets-dir" : args.processed_tweets_dir,
+        "verbosity"            : args.verbosity
     }
 
     from act_comparator import compare
@@ -102,7 +100,29 @@ elif usr_request == "optimize":
     print("--------------------------")
     print()
 
-    # TODO
+    # Options available :
+    #   - classifier           : classifiers code / path to config file
+    #   - features             : features extractors code / path to config file
+    #   - hyper-params         : a path to a file listing the hyper parameters
+    #                            to be tuned (name + values)
+    #   - input-dir            : input directory for tweet loading
+    #   - labels               : which labels to train on
+    #   - output-dir           : output directory for results persistance
+    #   - processed-tweets-dir : output directory for parsed tweet
+    #   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
+
+    optimize_opt = {
+        "classifier"           : args.classifier,
+        "features"             : args.features,
+        "hyper-parameters"     : args.hyper_parameters,
+        "input-dir"            : args.input_dir,
+        "labels"               : args.selected_labels,
+        "output-dir"           : args.output_dir,
+        "processed-tweets-dir" : args.processed_tweets_dir,
+        "verbosity"            : args.verbosity
+    }
+
+    print(optimize_opt)
 
 
 #------------------------------------------------------------------------------
@@ -114,24 +134,24 @@ elif usr_request == "train":
     print()
 
     # Options available :
+    #   - classifier           : classifiers code / path to config file
+    #   - features             : features extractors code / path to config file
     #   - input-dir            : input directory for tweet loading
+    #   - labels               : which labels to train on
+    #   - no-cross-validation  : assess if the classifier should be cross-valid
+    #   - output-dir           : output directory for results persistance
     #   - processed-tweets-dir : output directory for parsed tweet
     #   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
-    #   - label                : which label to train on (can be a composition)
-    #   - output-dir           : output directory for results persistance
-    #   - features             : selected features for extraction
-    #   - classifier           : selected classifier for training or load a cfg
-    #   - no-cross-validation  : assess if the classifier should be cross-valid
 
     trainer_opt = {
+        "classifier"           : args.classifier,
+        "cross-validation"     : args.cross_validation,
+        "features"             : args.features,
         "input-dir"            : args.input_dir,
-        "processed-tweets-dir" : args.processed_tweets_dir,
-        "verbosity"            : args.verbosity,
         "labels"               : args.selected_labels,
         "output-dir"           : args.output_dir,
-        "features"             : args.selected_features,
-        "classifier"           : args.selected_classifier,
-        "cross-validation"     : args.cross_validation
+        "processed-tweets-dir" : args.processed_tweets_dir,
+        "verbosity"            : args.verbosity
         }
 
     from act_trainer import train
@@ -148,3 +168,9 @@ elif usr_request == "classify":
 
     # TODO
     
+
+#------------------------------------------------------------------------------
+# [Contextual] Unknown Request
+else:
+    abort_clean("ERROR : Unknown user request.",
+        "Request found : " + usr_request)

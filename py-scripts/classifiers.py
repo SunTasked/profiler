@@ -56,6 +56,8 @@ def get_classifier(classifier_str, config=None, verbose=1):
                 "Either the clf name is incorrect or the path is invalid : " +
                 classifier_str)
 
+        if verbose:
+            print("Loading classifier config from file")
         # recursive call with config loaded
         return get_classifier("", config, verbose=verbose)
 
@@ -74,6 +76,9 @@ def get_classifier(classifier_str, config=None, verbose=1):
 #------------------------- CLASSIFIERS CONFIGURATORS --------------------------
 #------------------------------------------------------------------------------
 
+
+# Support Vector Machine
+#------------------------------------------------------------------------------
 def get_svm(config=None):
     '''
     Returns a svm classifier.
@@ -111,6 +116,8 @@ def get_svm(config=None):
     return clf_name, clf
 
 
+# Multi Layered Perceptron
+#------------------------------------------------------------------------------
 def get_mlp(config=None):
     '''
     Returns a Multi-Layered Perceptron classifier.
@@ -159,6 +166,8 @@ def get_mlp(config=None):
     return clf_name, clf
 
 
+# Naive Bayes (Bernouilly)
+#------------------------------------------------------------------------------
 def get_nbb(config=None):
     '''
     Returns a Naive Bayes classifier (bernouilly implementation).
@@ -188,6 +197,8 @@ def get_nbb(config=None):
     return clf_name, clf
 
 
+# Random Forrest
+#------------------------------------------------------------------------------
 def get_rfo(config=None):
     '''
     Returns a Naive Bayes classifier (bernouilly implementation).

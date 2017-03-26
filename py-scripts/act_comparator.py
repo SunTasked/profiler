@@ -122,7 +122,6 @@ def compare(options):
 
     output_dir = format_dir_name(options["output-dir"])
     individual_scores_dir = format_dir_name(output_dir + "indiv_scores/")
-    print(individual_scores_dir)
     create_dir(individual_scores_dir)
 
 
