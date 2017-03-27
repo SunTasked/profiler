@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 # add path to the python scripts
 sys.path.insert(0, './py-scripts')
-from utils import integer, abort_clean
+from utils import integer, abort_clean, dir_exists, format_dir_name
 
 ########################################
 ########### Argument Parser ############
@@ -58,8 +58,27 @@ usr_request = args.action
 ########### Program Start #############
 #######################################
 
-from dataset_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
-from utils import build_corpus
+
+# Options available for every command:
+#   - output-dir           : output directory for results persistance
+#   - processed-tweets-dir : output directory for parsed tweet
+#   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
+
+
+# Check and Clean directory paths :
+if not(args.input_dir and dir_exists(args.input_dir)):
+    abort_clean("Input directory path is incorrect")
+else: 
+    args.input_dir = format_dir_name(args.input_dir)
+if not(args.output_dir and dir_exists(args.output_dir)):
+    abort_clean("Output directory path is incorrect")
+else: 
+    args.output_dir = format_dir_name(args.output_dir)
+if args.processed_tweets_dir and not(dir_exists(args.processed_tweets_dir)):
+    abort_clean("Processed tweets directory path is incorrect")
+elif args.processed_tweets_dir: 
+    args.processed_tweets_dir = format_dir_name(args.processed_tweets_dir)
+
 
 #------------------------------------------------------------------------------
 # [Contextual] Compare different algorithms on different features sets
@@ -74,9 +93,6 @@ if usr_request == "compare":
     #   - features             : features extractors code / path to config file
     #   - input-dir            : input directory for tweet loading
     #   - labels               : which labels to train on
-    #   - output-dir           : output directory for results persistance
-    #   - processed-tweets-dir : output directory for parsed tweet
-    #   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
 
     compare_opt = {
         "classifier"           : args.classifier,
@@ -101,19 +117,12 @@ elif usr_request == "optimize":
     print()
 
     # Options available :
-    #   - classifier           : classifiers code / path to config file
-    #   - features             : features extractors code / path to config file
     #   - hyper-params         : a path to a file listing the hyper parameters
     #                            to be tuned (name + values)
     #   - input-dir            : input directory for tweet loading
     #   - labels               : which labels to train on
-    #   - output-dir           : output directory for results persistance
-    #   - processed-tweets-dir : output directory for parsed tweet
-    #   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
 
     optimize_opt = {
-        "classifier"           : args.classifier,
-        "features"             : args.features,
         "hyper-parameters"     : args.hyper_parameters,
         "input-dir"            : args.input_dir,
         "labels"               : args.selected_labels,
@@ -122,7 +131,8 @@ elif usr_request == "optimize":
         "verbosity"            : args.verbosity
     }
 
-    print(optimize_opt)
+    from act_optimizer import optimize
+    optimize(optimize_opt)
 
 
 #------------------------------------------------------------------------------
@@ -139,9 +149,6 @@ elif usr_request == "train":
     #   - input-dir            : input directory for tweet loading
     #   - labels               : which labels to train on
     #   - no-cross-validation  : assess if the classifier should be cross-valid
-    #   - output-dir           : output directory for results persistance
-    #   - processed-tweets-dir : output directory for parsed tweet
-    #   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
 
     trainer_opt = {
         "classifier"           : args.classifier,

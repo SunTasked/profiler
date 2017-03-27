@@ -21,7 +21,7 @@ Use the folowing commands to conduct your experiments:
 | **optimize** | optimize parameters for a specified classifier / set of features |
 
 
-### train options:
+### train options
 
 | option                 | mandatory               | purpose                                                                                                                                                                                                                         | Possible Value                                         |
 |------------------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
@@ -29,7 +29,7 @@ Use the folowing commands to conduct your experiments:
 | -c, --classifier       | yes                     | The classifier you wish to use. The available classifiers are specified in the classifiers section. You can also specify a path to a classifier config file.                                                                    | classifier-code                                        |
 | -f, --features         | yes                     | The set of features you wish to use. The available set of features are specified in the features section. You can also specify a path to a features extractor config file.                                                      | features-code                                          |
 | --in, --input-dir      | yes                     | input directory from which the tweets will be extracted                                                                                                                                                                         | path to the input directory                            |
-| --out, output-dir      | no but strongly advised | output directory into which the resulting model and additional training informations will be saved                                                                                                                              | path to the output directory (model and training data) |
+| --out, output-dir      | yes                     | output directory into which the resulting model and additional training informations will be saved                                                                                                                              | path to the output directory (model and training data) |
 | --no-cross-validation  | no                      | Only use if you want to train on the whole dataset without cross-validation. Output directory must be specified in such case.                                                                                                   | /                                                      |
 | --processed-tweets-dir | no                      | output directory into which the processed tweets will be stored                                                                                                                                                                 | path to the output directory (tweets)                  |
 | -v, --verbosity        | no                      | verbosity level : from 0 (quiet) to 3 (noisy)                                                                                                                                                                                   | [0;3]                                                  |
@@ -40,7 +40,17 @@ Use the folowing commands to conduct your experiments:
 Not yet implemented
 
 ### optimize options
-Not yet implemented
+
+| option                 | mandatory               | purpose                                                                                                                                                                                                                         | Possible Value                                         |
+|------------------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| -l, --labels           | yes                     | Label you wish to predict. Possible labels are : language, variety and gender. Should you choose variety or gender, please specify a directory containing directly all the tweets (no sub directories)                          | l, language or v, variety or g, gender                 |
+| --hyper-parameters     | yes                     | Path to a file listing the hyper parameters you wish to tune and the values available.                                                                                                                                          | path to the hyper-params file                          |
+| --in, --input-dir      | yes                     | input directory from which the tweets will be extracted                                                                                                                                                                         | path to the input directory                            |
+| --out, output-dir      | no but strongly advised | output directory into which the resulting model and additional training informations will be saved                                                                                                                              | path to the output directory (model and training data) |
+| --no-cross-validation  | no                      | Only use if you want to train on the whole dataset without cross-validation. Output directory must be specified in such case.                                                                                                   | /                                                      |
+| --processed-tweets-dir | no                      | output directory into which the processed tweets will be stored                                                                                                                                                                 | path to the output directory (tweets)                  |
+| -v, --verbosity        | no                      | verbosity level : from 0 (quiet) to 3 (noisy)                                                                                                                                                                                   | [0;3]                                                  |
+
 
 ### compare options
 

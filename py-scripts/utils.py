@@ -177,3 +177,10 @@ def integer(string):
     Converts a string to int
     """
     return int(string)
+
+def dir_exists(dir_path):
+    """
+    Checks if specified dir exists.
+    """
+    return os.path.isdir(dir_path)
+    

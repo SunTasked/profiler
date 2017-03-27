@@ -10,7 +10,7 @@ from features import get_features_extr
 from persistance import save_model, save_scores
 from dataset_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
 from pipeline import get_pipeline
-from utils import build_corpus, abort_clean, format_dir_name, print_scores
+from utils import build_corpus, abort_clean, print_scores
 from utils import get_classifier_name, get_features_extr_name
 
 
@@ -123,7 +123,7 @@ def train(options) :
                 "+" + get_classifier_name(classifier))
             save_scores(
                 scores=scores,
-                output_dir=format_dir_name(options["output-dir"]),
+                output_dir=options["output-dir"],
                 filename=filename,
                 verbose=options["verbosity"])
 
@@ -143,15 +143,14 @@ def train(options) :
 
     #--------------------------------------------------------------------------
     # Save the resulting model
-    if (options["output-dir"]):
-        filename = str(get_features_extr_name(features_extr) + 
-                "+" + get_classifier_name(classifier))
-        save_model(
-            pipeline=pipeline, 
-            output_dir=format_dir_name(options["output-dir"]),
-            filename=filename,
-            verbose=options["verbosity"]) 
-    
+    filename = str(get_features_extr_name(features_extr) + 
+            "+" + get_classifier_name(classifier))
+    save_model(
+        pipeline=pipeline, 
+        output_dir=options["output-dir"],
+        filename=filename,
+        verbose=options["verbosity"]) 
+
 
     #--------------------------------------------------------------------------
     # End Execution

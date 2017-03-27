@@ -89,8 +89,42 @@ def save_comparison_table(table, extractors, classifiers, filepath):
         str_row = get_features_extr_name(extractors[idx]) + ","
         str_row += ','.join(['{0:.3f}'.format(float(x)) for x in row])  + '\n'
         file.write(str_row)
-    
     file.close()
+
+
+def save_optimisation_results(grid, output_dir, score, verbose):
+    '''
+    Exports the results of an optimisation to a csv and a text files
+    '''
+    if verbose:
+        print("Saving optimisation results into : " + output_dir +      
+            score + "_opt_***.txt/csv")
+
+    # best hyper-parameters report
+    best_clf_file = open(output_dir+score+"_opt_best.txt", 'w')
+    best_clf_file.write("Best parameters set found on development set:\n")
+    best_parameters = grid.best_params_
+    for param_name in sorted(best_parameters.keys()):
+        best_clf_file.write("\t%s: %r\n" % (param_name, 
+            best_parameters[param_name]))
+    best_clf_file.close()
+
+    # full hyper-parameters report
+    full_clf_file = open(output_dir+score+"_opt_full.csv", 'w')
+    means = grid.cv_results_['mean_test_score']
+    stds = grid.cv_results_['std_test_score']
+    keys = [key for key in grid.cv_results_['params'][0]]
+    full_clf_file.write(','.join(["instance", score, "delta"] + keys)+"\n")
+    for idx, (mean, std, params) in enumerate(zip(means, stds, 
+            grid.cv_results_['params'])):
+        line = str(idx+1)+ "," + "{0:.3f}".format(mean) + ","
+        line += "{0:.3f}".format(std * 2) + ","
+        line += ",".join([str(params[key]) for key in keys]) + "\n"
+        full_clf_file.write(line)
+    full_clf_file.close()
+
+    if verbose:
+        print("Optimisation results saved.\n")
 
 
 def load_config(file_path):

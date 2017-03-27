@@ -6,7 +6,7 @@ from features import get_features_extr
 from persistance import save_scores, save_comparison_table
 from dataset_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
 from pipeline import get_pipeline
-from utils import build_corpus, abort_clean, format_dir_name, print_scores
+from utils import build_corpus, abort_clean, print_scores
 from utils import create_dir, get_classifier_name, get_features_extr_name
 
 #------------------------------------------------------------------------------
@@ -120,8 +120,8 @@ def compare(options):
     F1_macro = [[0 for x in classifiers] for y in extractors]
     Time_train = [[0 for x in classifiers] for y in extractors]
 
-    output_dir = format_dir_name(options["output-dir"])
-    individual_scores_dir = format_dir_name(output_dir + "indiv_scores/")
+    output_dir = options["output-dir"]
+    individual_scores_dir = output_dir + "indiv_scores/"
     create_dir(individual_scores_dir)
 
 

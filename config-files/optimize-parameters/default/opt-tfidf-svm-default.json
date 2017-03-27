@@ -1,0 +1,16 @@
+{
+    "optimise-ref":"default-svm-opt",
+    "classifier-call":"svm",
+    "classifier-type":"svm",
+    "classifier-name":"svm-default",
+    "features-extractr-call":"tfidf",
+    "features-extractr-type":"tfidf",
+    "features-extractr-name":"tfidf_default",
+    "scores":["precision","recall"],
+    "parameters":{
+        "svm-default__penalty": ["l1","l2"],
+        "svm-default__dual" : [false],
+        "svm-default__multi_class" : ["ovr", "crammer_singer"],
+        "svm-default__max_iter": [500, 1000, 1500]
+    }
+}
