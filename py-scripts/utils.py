@@ -58,7 +58,8 @@ def build_corpus(authors, labels, shuffle=True, verbosity_level=1):
             corpus_labels.append(label)
     
     labels_unique = list(set(corpus_labels))
-    corpus = DataFrame({"tweets" : tweets, "class" : corpus_labels}, index=indexes)
+    corpus = DataFrame({"tweets" : tweets, "class" : corpus_labels}, 
+                index=indexes)
 
     if shuffle :
         corpus = corpus.reindex(numpy.random.permutation(corpus.index))
@@ -126,7 +127,8 @@ def print_scores(scores):
         print("Confusion matrix printing failed\n")
 
 
-def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False, hide_threshold=None):
+def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False,
+    hide_threshold=None):
     """
     pretty prints for confusion matrixes
     """

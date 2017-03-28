@@ -76,7 +76,8 @@ def optimize(options):
     try:
         params = load_config(options["hyper-parameters"])
     except:
-        abort_clean("Configuration couldn't be loaded","given path: " + options["hyper-parameters"])
+        abort_clean("Configuration couldn't be loaded","given path: " + 
+            options["hyper-parameters"])
     
     #--------------------------------------------------------------------------
     # Load the classifier

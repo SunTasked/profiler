@@ -245,7 +245,7 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
     return Authors
 
 
-def parse_tweets_from_main_dir (input_dir, output_dir=None, verbosity_level=1) :
+def parse_tweets_from_main_dir (input_dir, output_dir=None, verbosity_level=1):
     '''
     Parses all the xml files contained within directories included in the 
     specified input_dir (1 level recursion).

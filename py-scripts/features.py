@@ -198,7 +198,7 @@ def get_lsa(config=None):
             extractr = TruncatedSVD(**(config["configuration"]))
         except:
             abort_clean("Features Extractor configuration failed",
-                "Configuring " + config["extractr_type"] + " with : " + 
+                "Configuring " + config["extractr_type"] + " with : " +
                 config["configuration"])
 
     res = (extractr_name, extractr)
