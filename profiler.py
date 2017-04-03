@@ -27,16 +27,21 @@ parser.add_argument("--in","--input-dir", type=str, dest="input_dir",
                     help="specify the directory from which the tweets will be \
                     exctracted")
 parser.add_argument("--out","--output-dir", type=str, dest="output_dir",
-                    default='./',
-                    help="specify the directory in which the result files \
+                    help="specify the directory in which the output files \
                     will be saved")
-parser.add_argument("--hyper-parameters",  type=str, dest="hyper_parameters",
+parser.add_argument("--execution-dir", type=str, dest="execution_dir",
+                    help="specify the directory from which the execution \
+                    pipelines will be loaded")
+parser.add_argument("--hyper-parameters", type=str, dest="hyper_parameters",
                     default="",
                     help="specify a config file listing the hyper parameters \
                     to be tuned")
-parser.add_argument("--no-cross-validation",  action='store_false',
+parser.add_argument("--no-cross-validation", action='store_false',
                     dest="cross_validation", default=True,
                     help="specify if you want to cross validate your model")
+parser.add_argument("--truth-file", type=str, dest="truth_file",
+                    help="specify a truth file to eveluate the classification \
+                    results")
 parser.add_argument("-s", "--scores",  type=str, dest="scores",
                     default="precision",
                     help="The score function to optimize ('-' separated)")
@@ -78,11 +83,46 @@ if args.processed_tweets_dir and not(dir_exists(args.processed_tweets_dir)):
     abort_clean("Processed tweets directory path is incorrect")
 elif args.processed_tweets_dir: 
     args.processed_tweets_dir = format_dir_name(args.processed_tweets_dir)
+if args.execution_dir and not(dir_exists(args.execution_dir)):
+    abort_clean("Models binaries directory path is incorrect")
+elif args.execution_dir: 
+    args.execution_dir = format_dir_name(args.execution_dir)
+ 
+
+#------------------------------------------------------------------------------
+# [Contextual] Classify a given dataset
+if usr_request == "classify":
+    print("-----------------------------------")
+    print("Starting classification")
+    print("-----------------------------------")
+    print()
+
+    # Options available :
+    #   - execution-dir        : path to a folder containing the pipe binaries
+    #   - input-dir            : input directory for tweet loading
+    #   - truth-file           : specify a truth file to evaluate the results
+
+    '''
+    if not(args.execution_dir and dir_exists(args.execution_dir)):
+        abort_clean("execution directory path is incorrect")
+    else: 
+        args.execution_dir = format_dir_name(args.execution_dir)
+    '''
+    classifier_opt = {
+        "classifiers-dir"      : args.execution_dir,
+        "input-dir"            : args.input_dir,
+        "output-dir"           : args.output_dir,
+        "truth-file"           : args.truth_file,
+        "verbosity"            : args.verbosity
+        }
+
+    from act_classifier import classify
+    classify(classifier_opt)
 
 
 #------------------------------------------------------------------------------
 # [Contextual] Compare different algorithms on different features sets
-if usr_request == "compare":
+elif usr_request == "compare":
     print("--------------------------------------------------------")
     print("Starting classifiers and features extractors comparison.")
     print("--------------------------------------------------------")
@@ -164,18 +204,7 @@ elif usr_request == "train":
     from act_trainer import train
     train(trainer_opt)
 
-    
-#------------------------------------------------------------------------------
-# [Contextual] Classify a given test set
-elif usr_request == "classify":
-    print("-----------------------------------")
-    print("Starting classification")
-    print("-----------------------------------")
-    print()
-
-    # TODO
-    
-
+   
 #------------------------------------------------------------------------------
 # [Contextual] Unknown Request
 else:

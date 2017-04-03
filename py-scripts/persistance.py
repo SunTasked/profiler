@@ -1,8 +1,11 @@
 from json import load, dumps
+from os import listdir
+from time import time
+import xml.etree.cElementTree as ET
 
 from sklearn.externals import joblib
 
-from utils import get_classifier_name, get_features_extr_name
+from utils import get_classifier_name, get_features_extr_name, abort_clean
 
 
 #------------------------------------------------------------------------------
@@ -14,13 +17,12 @@ def save_model(pipeline, output_dir, filename, verbose):
     '''
     Saves a classifier (pipeline) to a file.
     Directory and filename must be specified separatly
-    Returns True if the save went well
     '''
     if verbose:
-        print("Saving Model into : " + output_dir + filename + "_pipe.pkl")
+        print("Saving Model into : " + output_dir + filename + "_pipe.clf")
 
     # Save model
-    joblib.dump(pipeline, output_dir + filename + '_pipe.pkl')
+    joblib.dump(pipeline, output_dir + filename + '_pipe.clf')
     # Save model configuration
     conf_file = open(output_dir + filename + '_pipe.config', mode='w')
     for step in pipeline.steps:
@@ -29,6 +31,50 @@ def save_model(pipeline, output_dir, filename, verbose):
 
     if verbose:
         print("Model Saved.\n")
+
+
+def load_classifiers(classifier_dir_path, verbose):
+    '''
+    Loads the required classifiers for the PAN17 task.
+    '''
+    classifiers = {}
+
+    if verbose:
+        print("starting loading classifiers :")
+        t0 = time()
+    # gender classifier
+    if verbose:
+        print("    - loading gender classifier")
+    gdr_clf_path = [path for path in listdir(
+        classifier_dir_path + "gender" ) if path.endswith('.clf')][0]
+    gdr_clf_path = classifier_dir_path + "gender/" + gdr_clf_path
+    gdr_pipe = load_model(gdr_clf_path)
+    classifiers["gender"] = gdr_pipe
+
+    # variety classifier
+    if verbose:
+        print("    - loading variety classifier")
+    var_clf_path = [path for path in listdir(
+        classifier_dir_path + "variety" ) if path.endswith('.clf')][0]
+    var_clf_path = classifier_dir_path + "variety/" + var_clf_path
+    var_pipe = load_model(var_clf_path)
+    classifiers["variety"] = var_pipe
+
+    if verbose:
+        print("Classifiers Loading --- success in %.3f seconds\n" %(time()-t0))
+    return classifiers
+
+
+def load_model(filename):
+    '''
+    Loads a classifier (pipeline) from a file.
+    '''
+    # Load model
+    try:
+        pipe = joblib.load(filename)
+    except:
+        abort_clean("failed to load the classifier")
+    return pipe
 
 
 def save_scores(scores, output_dir, filename, verbose) :
@@ -136,3 +182,37 @@ def load_config(file_path):
     config_file = open(file_path)
     config = load(config_file)
     return config
+
+
+def save_author_file(author, output_dir, verbose):
+    '''
+    Saves an author object to an xml file respecting the PAN'17 format
+    '''
+
+    root = ET.Element("author")
+    root.attrib["id"]=author["id"]
+    root.attrib["lang"]=author["lang"]
+    root.attrib["variety"]=author["variety"]
+    root.attrib["gender"]=author["gender"]
+
+    tree = ET.ElementTree(root)
+    if verbose :
+        print("saving author " + author["id"] + " informations to file")
+    tree.write(output_dir + author["id"] + ".xml")
+
+
+def load_author_file(file_path, verbose):
+    '''
+    Loads an author object from an xml file respecting the PAN'17 format
+    '''
+    tree = ET.parse(file_path)
+    root = tree.getroot()
+    author = dict()
+    author["id"] = root.attrib["id"]
+    author["lang"] = root.attrib["lang"]
+    author["variety"] = root.attrib["variety"]
+    author["gender"] = root.attrib["gender"]
+
+    if verbose :
+        print("Loading author " + author["id"] + " complete")
+    return author

@@ -5,7 +5,7 @@ import re
 from time import time
 import xml.etree.ElementTree as ET
 
-from utils import get_printable_tweet
+from utils import get_printable_tweet, abort_clean
 
 
 #------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ def filter_tweets (author, verbose=False):
     return tweets
 
 
-def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
+def parse_tweets_from_dir(input_dir, output_dir=None, label=True, verbosity_level=1) :
     '''
     Parses all the xml files directly in the input_dir (no recursion).
     Retrieves the attributes of the author stored in the truth file.
@@ -135,9 +135,8 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
         xml_files = [f for f in listdir(input_dir) if (
             isfile(join(input_dir, f)) and f[-4:] == ".xml" )]
     except:
-        print("Files listing --- failure")
-        print("Maybe the directory specified is incorrect ?")
-        return
+        abort_clean("Files listing --- failure",
+            "Maybe the directory specified is incorrect ?")
 
     if verbosity_level:
         print("Files found : " + str(len(xml_files)))
@@ -177,39 +176,40 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
 
     # ---------------------------- AUTHOR ATTRIBUTES RETRIEVING
 
-    if verbosity_level:
-        t0 = time()
-        print ("Starting Author Attributes Retrieval ...")
-    try:
-        truth_file = open(input_dir + "truth.txt")
-    except:
-        print("Author Attributes Retrieval --- failure")
-        print("Couldn't open " + input_dir + "truth.txt")
-        return
-    
-    truth_lines = [x.strip().split(':::') for x in truth_file.readlines()]
-    attrs = dict()
-    for l in truth_lines :
-        attrs[l[0]] = l[1:]
+    if label:
+        if verbosity_level:
+            t0 = time()
+            print ("Starting Author Attributes Retrieval ...")
+        try:
+            truth_file = open(input_dir + "truth.txt")
+        except:
+            abort_clean("Author Attributes Retrieval --- failure",
+                "Couldn't open " + input_dir + "truth.txt")
+        
+        truth_lines = [x.strip().split(':::') for x in truth_file.readlines()]
+        attrs = dict()
+        for l in truth_lines :
+            attrs[l[0]] = l[1:]
 
-    for idx, author in enumerate(Authors):
-        author["gender"] =  attrs[author["id"]][0]
-        author["variety"] = attrs[author["id"]][1]
+        for idx, author in enumerate(Authors):
+            author["gender"] =  attrs[author["id"]][0]
+            author["variety"] = attrs[author["id"]][1]
 
-        if author["gender"] and author["variety"]:
-            n_files_infos_retrieved += 1
+            if author["gender"] and author["variety"]:
+                n_files_infos_retrieved += 1
+
+            if verbosity_level > 1:
+                print("   author " +Authors[idx]["id"] +
+                    " information retrieved : Gender=" + 
+                    Authors[idx]["gender"] +
+                    " Language=" + Authors[idx]["lang"] + 
+                    " Variety=" + Authors[idx]["variety"])
 
         if verbosity_level > 1:
-            print("   author " +Authors[idx]["id"] +
-                  " information retrieved : Gender=" + Authors[idx]["gender"] +
-                  " Language=" + Authors[idx]["lang"] + 
-                  " Variety=" + Authors[idx]["variety"])
-
-    if verbosity_level > 1:
-        print("Retreived Information : " + str(n_files_infos_retrieved) + 
-            " out of " + str(n_files))
-        print("Author Attributes Retrieval --- success in %.3f seconds\n"  
-            % (time() - t0))
+            print("Retreived Information : " + str(n_files_infos_retrieved) +
+                " out of " + str(n_files))
+            print("Author Attributes Retrieval --- success in %.3f seconds\n"
+                % (time() - t0))
 
 
     # ---------------------------- TWEET FILTERING:
@@ -239,12 +239,15 @@ def parse_tweets_from_dir(input_dir, output_dir=None, verbosity_level=1) :
     # ---------------------------- RETURNING PROCESSED DATA
 
     if verbosity_level :
-        print("Tweets available for learning : " + 
+        print("Tweets available : " + 
             str(sum([len(a["tweets"]) for a in Authors])) + "\n")
 
     return Authors
 
 
+#------------------------------------------------------------------------------
+#--- OBSOLETE
+#------------------------------------------------------------------------------
 def parse_tweets_from_main_dir (input_dir, output_dir=None, verbosity_level=1):
     '''
     Parses all the xml files contained within directories included in the 
@@ -280,10 +283,10 @@ def parse_tweets_from_main_dir (input_dir, output_dir=None, verbosity_level=1):
             print("Parsing subdirectory : " + sub + "\n")
         if output_dir :
             Authors = Authors + parse_tweets_from_dir(input_dir+sub, 
-                output_dir+sub, verbosity_level)
+                output_dir+sub, True, verbosity_level)
         else :
             Authors = Authors + parse_tweets_from_dir(input_dir+sub, 
-                None, verbosity_level)
+                None, True, verbosity_level)
         if verbosity_level :
             print("--------------------------------------\n")
 

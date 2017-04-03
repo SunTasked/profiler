@@ -57,6 +57,7 @@ def train(options) :
         Authors = parse_tweets_from_dir(
             input_dir=options["input-dir"], 
             output_dir=options["processed-tweets-dir"],
+            label=True,
             verbosity_level=options["verbosity"])
 
     if not (Authors):
