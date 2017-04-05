@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 # add path to the python scripts
 sys.path.insert(0, './py-scripts')
-from utils import integer, abort_clean, dir_exists, format_dir_name
+from utils import integer, abort_clean, dir_exists, clean_options_paths
 
 ########################################
 ########### Argument Parser ############
@@ -39,8 +39,8 @@ parser.add_argument("--hyper-parameters", type=str, dest="hyper_parameters",
 parser.add_argument("--no-cross-validation", action='store_false',
                     dest="cross_validation", default=True,
                     help="specify if you want to cross validate your model")
-parser.add_argument("--truth-file", type=str, dest="truth_file",
-                    help="specify a truth file to eveluate the classification \
+parser.add_argument("--truth-dir", type=str, dest="truth_dir",
+                    help="specify a truth directory to evaluate the classification \
                     results")
 parser.add_argument("-s", "--scores",  type=str, dest="scores",
                     default="precision",
@@ -71,23 +71,7 @@ usr_request = args.action
 
 
 # Check and Clean directory paths :
-if not(args.input_dir and dir_exists(args.input_dir)):
-    abort_clean("Input directory path is incorrect")
-else: 
-    args.input_dir = format_dir_name(args.input_dir)
-if not(args.output_dir and dir_exists(args.output_dir)):
-    abort_clean("Output directory path is incorrect")
-else: 
-    args.output_dir = format_dir_name(args.output_dir)
-if args.processed_tweets_dir and not(dir_exists(args.processed_tweets_dir)):
-    abort_clean("Processed tweets directory path is incorrect")
-elif args.processed_tweets_dir: 
-    args.processed_tweets_dir = format_dir_name(args.processed_tweets_dir)
-if args.execution_dir and not(dir_exists(args.execution_dir)):
-    abort_clean("Models binaries directory path is incorrect")
-elif args.execution_dir: 
-    args.execution_dir = format_dir_name(args.execution_dir)
- 
+args = clean_options_paths(args, args.verbosity)
 
 #------------------------------------------------------------------------------
 # [Contextual] Classify a given dataset
@@ -100,7 +84,6 @@ if usr_request == "classify":
     # Options available :
     #   - execution-dir        : path to a folder containing the pipe binaries
     #   - input-dir            : input directory for tweet loading
-    #   - truth-file           : specify a truth file to evaluate the results
 
     '''
     if not(args.execution_dir and dir_exists(args.execution_dir)):
@@ -112,7 +95,6 @@ if usr_request == "classify":
         "classifiers-dir"      : args.execution_dir,
         "input-dir"            : args.input_dir,
         "output-dir"           : args.output_dir,
-        "truth-file"           : args.truth_file,
         "verbosity"            : args.verbosity
         }
 

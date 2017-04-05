@@ -161,6 +161,7 @@ def create_dir(new_dir):
     """
     os.makedirs(new_dir,exist_ok=True)
 
+
 def get_features_extr_name(features_extr):
     """
     Returns the features extractor name
@@ -168,11 +169,13 @@ def get_features_extr_name(features_extr):
     name = "+".join([x[0] for x in features_extr])
     return name
 
+
 def get_classifier_name(classifier):
     """
     Returns the classifier name
     """
     return classifier[0]
+
 
 def integer(string):
     """
@@ -180,9 +183,58 @@ def integer(string):
     """
     return int(string)
 
+
 def dir_exists(dir_path):
     """
-    Checks if specified dir exists.
+    Checks if specified directory exists.
     """
     return os.path.isdir(dir_path)
-    
+
+
+def file_exists(file_path):
+    """
+    Checks if specified file exists.
+    """
+    return os.path.isfile(file_path)
+
+
+def clean_options_paths(args, verbose):
+    """
+    Checks if all paths are correct (if all the files/dir they point to exist)
+    """
+
+    # input directory - mandatory
+    if not(args.input_dir and dir_exists(args.input_dir)):
+        abort_clean("Input directory path is incorrect")
+    args.input_dir = format_dir_name(args.input_dir)
+
+    # output directory - mandatory
+    if not(args.output_dir and dir_exists(args.output_dir)):
+        abort_clean("Output directory path is incorrect")
+    args.output_dir = format_dir_name(args.output_dir)
+
+    # processed tweets directory - optional
+    if args.processed_tweets_dir:
+        if not(dir_exists(args.processed_tweets_dir)):
+            abort_clean("Processed tweets directory path is incorrect")
+        else: 
+            args.processed_tweets_dir = format_dir_name(
+                args.processed_tweets_dir )
+
+    # execution directory - optional
+    if args.execution_dir and not(dir_exists(args.execution_dir)):
+        abort_clean("Models binaries directory path is incorrect")
+    elif args.execution_dir: 
+        args.execution_dir = format_dir_name(args.execution_dir)
+
+    # truth directory - optional
+    if args.truth_dir and not(dir_exists(args.truth_dir)):
+        abort_clean("Truth directory path is incorrect")
+    elif args.truth_dir: 
+        args.truth_dir = format_dir_name(args.truth_dir)
+
+    # hyper parameters file - optional
+    if args.hyper_parameters and not(file_exists(args.hyper_parameters)):
+        abort_clean("Hyper parameters file doesn't exist")
+
+    return args
