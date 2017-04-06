@@ -8,6 +8,10 @@ from persistance import load_author_file, save_evaluation_results
 from utils import get_language_dir_names, format_dir_name, abort_clean
 from utils import get_variety_labels, get_gender_labels, stringify_cm
 
+#------------------------------------------------------------------------------
+#----------------------------- EVALUATION MODULE ------------------------------
+#------------------------------------------------------------------------------
+
 def evaluate(options):
     '''
     Evaluates the results of a classification in the context of PAN17

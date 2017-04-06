@@ -29,7 +29,7 @@ parser.add_argument("--in","--input-dir", type=str, dest="input_dir",
 parser.add_argument("--out","--output-dir", type=str, dest="output_dir",
                     help="specify the directory in which the output files \
                     will be saved")
-parser.add_argument("--execution-dir", type=str, dest="execution_dir",
+parser.add_argument("--classifiers-dir", type=str, dest="classifiers_dir",
                     help="specify the directory from which the execution \
                     pipelines will be loaded")
 parser.add_argument("--hyper-parameters", type=str, dest="hyper_parameters",
@@ -84,15 +84,10 @@ if usr_request == "classify":
     # Options available :
     #   - execution-dir        : path to a folder containing the pipe binaries
     #   - input-dir            : input directory for tweet loading
+    #   - output-dir           : output directory for resulting author files
 
-    '''
-    if not(args.execution_dir and dir_exists(args.execution_dir)):
-        abort_clean("execution directory path is incorrect")
-    else: 
-        args.execution_dir = format_dir_name(args.execution_dir)
-    '''
     classifier_opt = {
-        "classifiers-dir"      : args.execution_dir,
+        "classifiers-dir"      : args.classifiers_dir,
         "input-dir"            : args.input_dir,
         "output-dir"           : args.output_dir,
         "verbosity"            : args.verbosity
