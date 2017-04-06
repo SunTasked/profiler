@@ -126,22 +126,22 @@ def print_scores(scores):
     except :
         print("Confusion matrix printing failed\n")
 
-
-def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False,
+def stringify_cm(cm, labels, hide_zeroes=False, hide_diagonal=False,
     hide_threshold=None):
     """
-    pretty prints for confusion matrixes
+    pretty strings for confusion matrixes
     """
-    columnwidth = max([len(x) for x in labels]+[10]) # 5 is value length
+    cm_string = ""
+    columnwidth = max([len(x) for x in labels]+[10]) # 10 is value length
     empty_cell = " " * columnwidth
     # Print header
-    print("    " + empty_cell, end=' ')
+    cm_string += "    " + empty_cell + ' '
     for label in labels: 
-        print("%{0}s".format(columnwidth) % label, end=' ')
-    print()
+        cm_string += ("%{0}s".format(columnwidth) % label) + ' '
+    cm_string += "\n"
     # Print rows
     for i, label1 in enumerate(labels):
-        print("    %{0}s".format(columnwidth) % label1, end=' ')
+        cm_string += ("    %{0}s".format(columnwidth) % label1) + ' '
         for j in range(len(labels)): 
             cell = "%{0}.0f".format(columnwidth) % cm[i, j]
             if hide_zeroes:
@@ -150,9 +150,9 @@ def print_cm(cm, labels, hide_zeroes=False, hide_diagonal=False,
                 cell = cell if i != j else empty_cell
             if hide_threshold:
                 cell = cell if cm[i, j] > hide_threshold else empty_cell
-            print(cell, end=' ')
-        print()
-
+            cm_string += cell + ' '
+        cm_string += "\n"
+    return cm_string
 
 def create_dir(new_dir):
     """
@@ -238,3 +238,36 @@ def clean_options_paths(args, verbose):
         abort_clean("Hyper parameters file doesn't exist")
 
     return args
+
+
+def get_language_dir_names():
+    '''
+    Returns the different language codes available
+    [Function specific to PAN17 dataset structure] 
+    '''
+    return ["ar", "en", "es", "pt"]
+
+
+def get_variety_labels(language_code):
+    '''
+    Returns the different variety labels available for the language code 
+    [Function specific to PAN17 dataset structure] 
+    '''
+    if language_code == "en":
+        return ['australia','canada','great britain','ireland',
+            'new zealand','united states']
+    if language_code == "es":
+        return ['argentina','chile','colombia','mexico','peru',
+            'spain','venezuela']
+    if language_code == "pt":
+        return ['portugal','brazil']
+    if language_code == "ar":
+        return ['gulf','levantine','maghrebi','egypt']
+    return []
+
+def get_gender_labels():
+    '''
+    Returns the different gender labels available for the language code 
+    [Function specific to PAN17 dataset structure] 
+    '''
+    return ["male","female"]

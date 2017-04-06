@@ -3,9 +3,11 @@ from os import listdir
 from time import time
 import xml.etree.cElementTree as ET
 
+from numpy import array
 from sklearn.externals import joblib
 
 from utils import get_classifier_name, get_features_extr_name, abort_clean
+from utils import stringify_cm
 
 
 #------------------------------------------------------------------------------
@@ -216,3 +218,45 @@ def load_author_file(file_path, verbose):
     if verbose :
         print("Loading author " + author["id"] + " complete")
     return author
+
+def save_evaluation_results(results, input_dir, output_dir, verbose):
+    '''
+    Loads an author object from an xml file respecting the PAN'17 format
+    '''
+    if verbose:
+        print("Saving evaluation results into : " + output_dir +
+            "evaluation_results.txt")
+
+    # TXT file containing all the results
+    evaluation_file = open(output_dir + "evaluation_results.txt", 'w')
+    evaluation_file.write(
+        "Results obtained for the evaluation of the tweets contained in :\n" +
+        "    " + input_dir + "\n\n" )
+
+    for lang, res in results.items():
+            evaluation_file.write("---------------------\n")
+            evaluation_file.write("language : " + lang + "\n")
+            evaluation_file.write("---------------------\n")
+            evaluation_file.write("    - n files :                        " +
+                str(res["n_files"]) + "\n")
+            evaluation_file.write("    - gender successful prediction :   " +
+                str(res["gdr-positive-eval"]) + " (" +
+                "{0:.2f}".format(res["gdr-positive-eval"]/res["n_files"]*100) +
+                "%)" + "\n")
+            evaluation_file.write("    - variety successful prediction :  " +
+                str(res["var-positive-eval"]) + " (" +
+                "{0:.2f}".format(res["var-positive-eval"]/res["n_files"]*100) +
+                "%)" + "\n")
+            evaluation_file.write("    - confusion matrix (variety) :\n\n")
+            evaluation_file.write(stringify_cm(
+                array(res["var-confusion-matrix"]),
+                res["var-labels"]))
+            evaluation_file.write("\n")
+            evaluation_file.write("    - confusion matrix (gender) :\n\n")
+            evaluation_file.write(stringify_cm(
+                array(res["gdr-confusion-matrix"]), 
+                res["gdr-labels"]))
+            evaluation_file.write("\n")
+
+    if verbose:
+        print("Evaluation results saved")

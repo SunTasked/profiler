@@ -131,6 +131,29 @@ elif usr_request == "compare":
 
 
 #------------------------------------------------------------------------------
+# [Contextual] Train a specified classifier
+elif usr_request == "evaluate":
+    print("-----------------------------------")
+    print("Starting Evaluating results")
+    print("-----------------------------------")
+    print()
+
+    # Options available :
+    #   - input-dir            : input directory for predicted author files
+
+    evaluator_opt = {
+        "truth-dir"            : args.truth_dir,
+        "input-dir"            : args.input_dir,
+        "output-dir"           : args.output_dir,
+        "verbosity"            : args.verbosity
+        }
+
+    from act_evaluator import evaluate
+    evaluate(evaluator_opt)
+
+
+
+#------------------------------------------------------------------------------
 # [Contextual] Optimize a classification algorithm on a given set of features
 elif usr_request == "optimize":
     print("--------------------------")
@@ -185,6 +208,7 @@ elif usr_request == "train":
 
     from act_trainer import train
     train(trainer_opt)
+
 
    
 #------------------------------------------------------------------------------

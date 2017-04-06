@@ -2,7 +2,8 @@ from time import time
 
 from dataset_parser import parse_tweets_from_dir
 from persistance import load_classifiers, save_author_file
-from utils import abort_clean, get_printable_tweet
+from utils import abort_clean, get_printable_tweet, format_dir_name
+from utils import get_language_dir_names
 from time import time
 
 
@@ -24,19 +25,19 @@ def classify(options):
         - [contextual] checks it's results
     ''' 
     # PAN 17 specifics
-    language_dirs = ["ar/", "en/", "es/", "pt/"]
+    language_dirs = get_language_dir_names()
     Authors_processed = []
 
     for lang_dir in language_dirs:
 
         if options["verbosity"]:
             print('---------------------------------------')
-            print("Language up for classification: '" + lang_dir[:-1] + "'\n")
+            print("Language up for classification: '" + lang_dir + "'\n")
 
         #----------------------------------------------------------------------
         # Load the tweets
         Authors = parse_tweets_from_dir(
-            input_dir=options["input-dir"]+lang_dir, 
+            input_dir=format_dir_name(options["input-dir"]+lang_dir), 
             output_dir="",
             label=False,
             verbosity_level=options["verbosity"])
@@ -46,7 +47,8 @@ def classify(options):
 
         #----------------------------------------------------------------------
         # Load the classifiers
-        classifier_dir_path = options["classifiers-dir"] + lang_dir
+        classifier_dir_path = format_dir_name(options["classifiers-dir"] + 
+            lang_dir)
         classifiers = load_classifiers(
             classifier_dir_path=classifier_dir_path,
             verbose=options["verbosity"] )
@@ -67,7 +69,7 @@ def classify(options):
         
 
         if options["verbosity"]:
-            print("Classification of '" + lang_dir[:-1] + 
+            print("Classification of '" + lang_dir + 
                 "' complete in %.3f seconds" %(time()-t0))
             print('---------------------------------------\n')
 
