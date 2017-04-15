@@ -90,6 +90,7 @@ ENV/
 
 # Project directories
 training-data/*/
+config-files/*/custom/
 trained-classifiers/*/
 output/*/
 stuff-no-git/

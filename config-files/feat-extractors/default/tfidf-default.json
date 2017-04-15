@@ -24,7 +24,7 @@
             }
         },
         {
-            "extractr_name" : "tfidf-default-file",
+            "extractr_name" : "tfidf-default",
             "extractr_type" : "tfidf",
             "configuration" : {
                 "norm":"l2",
