@@ -25,20 +25,20 @@ def classify(options):
         - [contextual] checks it's results
     ''' 
     # PAN 17 specifics
-    language_dirs = get_language_dir_names()
+    languages = get_language_dir_names()
     Authors_processed = []
 
-    for lang_dir in language_dirs:
+    for lang in languages:
 
         if options["verbosity"]:
             print('---------------------------------------')
-            print("Language up for classification: '" + lang_dir + "'\n")
+            print("Language up for classification: '" + lang + "'\n")
 
         #----------------------------------------------------------------------
         # Load the tweets
         Authors = parse_tweets_from_dir(
-            input_dir=format_dir_name(options["input-dir"]+lang_dir), 
-            output_dir="",
+            input_dir=format_dir_name(options["input-dir"]+lang), 
+            output_dir=format_dir_name(options["processed-tweets-dir"]+lang),
             label=False,
             verbosity_level=options["verbosity"])
 
@@ -48,7 +48,7 @@ def classify(options):
         #----------------------------------------------------------------------
         # Load the classifiers
         classifier_dir_path = format_dir_name(options["classifiers-dir"] + 
-            lang_dir)
+            lang)
         classifiers = load_classifiers(
             classifier_dir_path=classifier_dir_path,
             verbose=options["verbosity"] )
@@ -69,7 +69,7 @@ def classify(options):
         
 
         if options["verbosity"]:
-            print("Classification of '" + lang_dir + 
+            print("Classification of '" + lang + 
                 "' complete in %.3f seconds" %(time()-t0))
             print('---------------------------------------\n')
 

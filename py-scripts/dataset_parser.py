@@ -5,7 +5,7 @@ import re
 from time import time
 import xml.etree.ElementTree as ET
 
-from utils import get_printable_tweet, abort_clean
+from utils import get_printable_tweet, abort_clean, create_dir
 
 
 #------------------------------------------------------------------------------
@@ -112,7 +112,6 @@ def parse_tweets_from_dir(input_dir, output_dir=None, label=True, verbosity_leve
     Returns a list containing all the author objects contained within the 
     input_dir
     '''
-
     # vars
     Authors = []
     t0 = time()
@@ -121,10 +120,6 @@ def parse_tweets_from_dir(input_dir, output_dir=None, label=True, verbosity_leve
     n_files_filtered = 0
     n_files_infos_retrieved = 0
     ret = '\n'
-
-    # preprocessing on direcory paths
-    if input_dir[-1] != "/": input_dir = input_dir + "/"
-    if output_dir and output_dir[-1] != "/": output_dir = output_dir + "/"
 
     # ---------------------------- FILES LISTING
     
@@ -149,6 +144,9 @@ def parse_tweets_from_dir(input_dir, output_dir=None, label=True, verbosity_leve
         print ("Starting files processing ...")
     
     n_files = len(xml_files)
+    
+    if output_dir:
+        create_dir(output_dir)
 
     for f in xml_files :
         author = None
@@ -260,16 +258,11 @@ def parse_tweets_from_main_dir (input_dir, output_dir=None, verbosity_level=1):
     Returns a list containing all the author objects contained within the 
     input_dir 
     '''
-
     # vars
     Authors = []
     t0 = time()
     n_files = 0
     n_files_parsed = 0
-
-    # preprocessing on direcory paths
-    if input_dir[-1] != "/": input_dir = input_dir + "/"
-    if output_dir and output_dir[-1] != "/": output_dir = output_dir + "/"
 
     subdirs = next(walk(input_dir))[1]
     if verbosity_level :
@@ -281,12 +274,14 @@ def parse_tweets_from_main_dir (input_dir, output_dir=None, verbosity_level=1):
         if verbosity_level :
             print("--------------------------------------")
             print("Parsing subdirectory : " + sub + "\n")
-        if output_dir :
-            Authors = Authors + parse_tweets_from_dir(input_dir+sub, 
-                output_dir+sub, True, verbosity_level)
-        else :
-            Authors = Authors + parse_tweets_from_dir(input_dir+sub, 
-                None, True, verbosity_level)
+
+        output_subdir = "" if not(output_dir) else output_dir+sub
+        Authors += parse_tweets_from_dir(
+            input_dir=input_dir+sub,
+            output_dir=output_subdir,
+            label=True,
+            verbosity_level=verbosity_level)
+
         if verbosity_level :
             print("--------------------------------------\n")
 
