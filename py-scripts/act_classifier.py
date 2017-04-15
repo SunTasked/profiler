@@ -3,7 +3,7 @@ from time import time
 from dataset_parser import parse_tweets_from_dir
 from persistance import load_classifiers, save_author_file
 from utils import abort_clean, get_printable_tweet, format_dir_name
-from utils import get_language_dir_names
+from utils import get_language_dir_names, create_dir
 from time import time
 
 
@@ -26,19 +26,22 @@ def classify(options):
     ''' 
     # PAN 17 specifics
     languages = get_language_dir_names()
-    Authors_processed = []
-
     for lang in languages:
 
         if options["verbosity"]:
             print('---------------------------------------')
             print("Language up for classification: '" + lang + "'\n")
+        
+        processed_tweets_dir = ("" if not(options["processed-tweets-dir"]) else
+            format_dir_name(options["processed-tweets-dir"]+lang))
+        classifier_dir_path = format_dir_name(options["classifiers-dir"]+lang)
+        output_subdir_path = format_dir_name(options["output-dir"]+lang)
 
         #----------------------------------------------------------------------
         # Load the tweets
         Authors = parse_tweets_from_dir(
             input_dir=format_dir_name(options["input-dir"]+lang), 
-            output_dir=format_dir_name(options["processed-tweets-dir"]+lang),
+            output_dir=processed_tweets_dir,
             label=False,
             verbosity_level=options["verbosity"])
 
@@ -47,8 +50,6 @@ def classify(options):
 
         #----------------------------------------------------------------------
         # Load the classifiers
-        classifier_dir_path = format_dir_name(options["classifiers-dir"] + 
-            lang)
         classifiers = load_classifiers(
             classifier_dir_path=classifier_dir_path,
             verbose=options["verbosity"] )
@@ -58,9 +59,9 @@ def classify(options):
         if options["verbosity"]:
             print("Starting authors classification ...")
             t0 = time()
+
         classify_authors(Authors, classifiers, options["verbosity"])
 
-        Authors_processed += Authors
         if options["verbosity"] > 1:
             for auth in Authors:
                 print(auth["id"] + ":::" +
@@ -73,12 +74,13 @@ def classify(options):
                 "' complete in %.3f seconds" %(time()-t0))
             print('---------------------------------------\n')
 
-    for auth in Authors_processed:
-        save_author_file(
-            author=auth,
-            output_dir=options["output-dir"],
-            verbose=options["verbosity"]>1
-        )
+        create_dir(output_subdir_path)
+        for auth in Authors:
+            save_author_file(
+                author=auth,
+                output_dir=output_subdir_path,
+                verbose=options["verbosity"]>1
+            )
 
 
 def classify_authors(Authors, classifiers, verbosity):
@@ -127,6 +129,11 @@ def predict_author_proba(author, model):
     predicted_list = []
     classes = model.classes_.tolist()
     predictions = [0 for c in classes]
+
+    # Handles the empty file event
+    if len(author["tweets"]) == 0:
+        predictions[0] = 1
+        return classes, predictions
 
     # it is preferable to use predict_proba (in terms of statistical accuracy)
     # but this method is not always available
