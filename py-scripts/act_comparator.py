@@ -97,20 +97,18 @@ def compare(options):
     #--------------------------------------------------------------------------
     # Load the features extractors
 
-    extractors_str_list = []
-    if isinstance(options["features"], list):
-        extractors_str_list = options["features"]
-    else :
-        extractors_str_list = [options["features"]]
+    extractors_str_list = options["features"]
 
-    extractors = [get_features_extr(
-        features_str=extr,
-        verbose=False ) for extr in extractors_str_list]
+    extractors = [
+        get_features_extr(
+            features_str_list=extr,
+            verbose=False ) 
+        for extr in extractors_str_list]
 
     if options["verbosity"]:
         print("Features extractors Loaded: ")
         for extrs in extractors:
-            print("    - '" + "' + '".join([x[0] for x in extrs]) + "'")
+            print("    - '" + extrs[0] + "'")
         print()
 
 

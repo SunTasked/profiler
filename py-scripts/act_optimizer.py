@@ -94,7 +94,7 @@ def optimize(options):
     # Load the features extractors
 
     features_extr = get_features_extr(        
-        features_str=params["features-extractr-call"],
+        features_str_list=params["features-extractr-call"],
         verbose=options["verbosity"])
 
 

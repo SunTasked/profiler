@@ -1,21 +1,56 @@
 import numpy as np
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.pipeline import FeatureUnion
 
 from persistance import load_config
-from utils import abort_clean, get_features_extr_name
+from pipeline import get_pipeline
+from utils import abort_clean
 
 
 #------------------------------------------------------------------------------
 #------------------ AUTOMATED FEATURES EXTRACTORS FETCHER ---------------------
 #------------------------------------------------------------------------------
 
-def get_features_extr(features_str, verbose=1):
+def get_features_extr(features_str_list, verbose=1):
     '''
-    Returns a list of feature extractors to match the specified features_str
+    Returns a feature union object containing all the features extractor 
+    referenced to in the features_str_list.
+    '''
+    features_str_list = features_str_list.split("+")
+    feat_extr_list = []
+    # final feature extractor name
+    feat_extr_union_name = ""
+
+    if(verbose):
+        print("Starting loading features extractor ... ")
+    
+    # load each features vectorizer and build the union
+    # the name of each sub extractor is the final estimator
+    for feat_extr_str in features_str_list:
+        feat_extr = load_features_extr(feat_extr_str, verbose)
+        feat_extr_pipe_name = feat_extr[-1][0]
+        feat_extr_pipe = get_pipeline(
+            features_extr=feat_extr,
+            classifier=None,
+            verbose=verbose>2
+            )
+        feat_extr_list.append((feat_extr_pipe_name,feat_extr_pipe))
+        feat_extr_union_name += "+" + feat_extr_pipe_name
+        
+    feat_extr_union_name = feat_extr_union_name[1:]
+    feat_extr_union = FeatureUnion(feat_extr_list)
+    res = (feat_extr_union_name, feat_extr_union)
+    
+    if(verbose):
+        print("features extractor loaded : " + feat_extr_union_name + "\n")
+    return res
+
+
+def load_features_extr(features_str, verbose=1):
+    '''
+    Returns a list of vectorizers to match the specified features_str
     Available features extractors are :
-        - cc1   : Character count (TODO)
-        - wc1   : Word count - unigram (TODO)
         - wc2   : Word count - bigram
         - tfidf : TF-IDF
         - lsa   : Latent Semantic Analysis
@@ -28,9 +63,6 @@ def get_features_extr(features_str, verbose=1):
 
     #--------------------------------------------------------------------------
     # Get required features_extractor
-
-    if(verbose):
-        print("Starting loading features extractor ... ")
 
     if features_str == "wc2":
         feat_extractors.append(get_wc2(None))
@@ -54,18 +86,14 @@ def get_features_extr(features_str, verbose=1):
         # Load the config from a file
         if verbose:
             print("Loading features extractor config from file ")
-        feat_extractors = get_features_extr_from_file(config, verbose=verbose)
+        feat_extractors = load_features_extr_from_file(config, verbose=verbose)
 
     #--------------------------------------------------------------------------
     # Return features extractors
-    if(verbose):
-        print("features extractor loaded: " + 
-             get_features_extr_name(feat_extractors) + "\n")
-
     return feat_extractors
 
 
-def get_features_extr_from_file(config, verbose=None):
+def load_features_extr_from_file(config, verbose=None):
     '''
     Returns a list of feature extractors following the given configuration
     '''

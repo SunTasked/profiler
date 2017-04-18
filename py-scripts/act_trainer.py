@@ -90,7 +90,7 @@ def train(options) :
     # Load the features extractors
 
     features_extr = get_features_extr(        
-        features_str=options["features"][0],
+        features_str_list=options["features"][0],
         verbose=options["verbosity"])
 
 

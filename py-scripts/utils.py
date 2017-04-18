@@ -121,10 +121,8 @@ def print_scores(scores):
     print("    - macro score average: " + str(scores["mean_score_macro"]))
     print("    - score of the resulting clf: "+str(scores["best_macro_score"]))
     print("    - resulting confusion matrix :")
-    try :
-        print_cm(scores["confusion_matrix"],scores["labels"])
-    except :
-        print("Confusion matrix printing failed\n")
+    
+    print(stringify_cm(scores["confusion_matrix"],scores["labels"]))
 
 def stringify_cm(cm, labels, hide_zeroes=False, hide_diagonal=False,
     hide_threshold=None):
@@ -162,11 +160,11 @@ def create_dir(new_dir):
     os.makedirs(new_dir,exist_ok=True)
 
 
-def get_features_extr_name(features_extr):
+def get_features_extr_name(feature_union):
     """
     Returns the features extractor name
     """
-    name = "+".join([x[0] for x in features_extr])
+    name = feature_union[0]
     return name
 
 
@@ -222,10 +220,10 @@ def clean_options_paths(args, verbose):
                 args.processed_tweets_dir )
 
     # execution directory - optional
-    if args.execution_dir and not(dir_exists(args.execution_dir)):
+    if args.classifiers_dir and not(dir_exists(args.classifiers_dir)):
         abort_clean("Models binaries directory path is incorrect")
-    elif args.execution_dir: 
-        args.execution_dir = format_dir_name(args.execution_dir)
+    elif args.classifiers_dir: 
+        args.classifiers_dir = format_dir_name(args.classifiers_dir)
 
     # truth directory - optional
     if args.truth_dir and not(dir_exists(args.truth_dir)):
