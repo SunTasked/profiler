@@ -1,4 +1,4 @@
-from json import load, dumps
+from json import loads, dumps
 from os import listdir
 from time import time
 import xml.etree.cElementTree as ET
@@ -182,7 +182,7 @@ def load_config(file_path):
     Will raise an Exception if the file can't be loaded.
     '''
     config_file = open(file_path)
-    config = load(config_file)
+    config = loads(config_file.read(), encoding="utf8")
     return config
 
 

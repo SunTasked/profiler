@@ -26,8 +26,13 @@ def process_text(tweet):
         return u""
         
     # filters
-    tweet = re.sub(u'^https?:\/\/.*[\r\n]*', '', tweet, flags=re.MULTILINE)
+    tweet = re.sub(u'https?:\/\/[^\s-]*', '', tweet, flags=re.MULTILINE)
     tweet = re.sub(u'@[^\ ]*', '', tweet, flags=re.MULTILINE)
+    tweet = re.sub(u'#[A-Za-z0-9]+',lambda x: x.group().lower(), tweet)
+
+    if len(tweet) < 10:
+        return u""
+
     return str(tweet)
 
 
@@ -63,7 +68,9 @@ def parse_file(file_to_parse, file_to_save=None, verbose=False) :
         
         processed_tweet = process_text(doc.text)
         doc.text = processed_tweet
-        tweets.append(processed_tweet)
+
+        if processed_tweet :
+            tweets.append(processed_tweet)
         
         if (verbose):
             print (file_to_parse, idx, get_printable_tweet(processed_tweet))
