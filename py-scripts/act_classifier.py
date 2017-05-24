@@ -1,5 +1,6 @@
 from time import time
 
+import gc
 from dataset_parser import parse_tweets_from_dir
 from persistance import load_classifiers, save_author_file
 from utils import abort_clean, get_printable_tweet, format_dir_name
@@ -24,6 +25,16 @@ def classify(options):
         - outputs the result files
         - [contextual] checks it's results
     ''' 
+
+    #----------------------------------------------------------------------
+    # Checking basic requirements
+    if not(options["classification-type"]  and options["classification-type"] in ["loose", "successive"]):
+        abort_clean("Classification type incorrectly specified")
+
+
+    if options["verbosity"]:
+        print('Classificationtype is ' + options["classification-type"])
+    
     # PAN 17 specifics
     languages = get_language_dir_names()
     for lang in languages:
@@ -52,7 +63,8 @@ def classify(options):
         # Load the classifiers
         classifiers = load_classifiers(
             classifier_dir_path=classifier_dir_path,
-            verbose=options["verbosity"] )
+            classification_type=options["classification-type"],
+            verbose=options["verbosity"])
 
         #----------------------------------------------------------------------
         # Start classification
@@ -60,7 +72,7 @@ def classify(options):
             print("Starting authors classification ...")
             t0 = time()
 
-        classify_authors(Authors, classifiers, options["verbosity"])
+        classify_authors(Authors, classifiers, options["classification-type"], options["verbosity"])
 
         if options["verbosity"] > 1:
             for auth in Authors:
@@ -82,8 +94,11 @@ def classify(options):
                 verbose=options["verbosity"]>1
             )
 
+        # for memory issues, free the classifiers objects
+        gc.collect()
 
-def classify_authors(Authors, classifiers, verbosity):
+
+def classify_authors(Authors, classifiers, classification_type, verbosity):
     '''
     Classifies all the tweets contained within a directory.
     Will proceed as follows :
@@ -100,9 +115,17 @@ def classify_authors(Authors, classifiers, verbosity):
         gdr_predicted = gdr_classes[gdr_max_idx]
         
         # classify variety
+        var_classes, var_predictions = [], []
+        if classification_type == "loose":
+            var_clf = classifiers["variety"]
+        elif gdr_predicted == "male": # classification_type == "successive" 
+            var_clf = classifiers["variety-male"]
+        else: # classification_type == "successive" and gdr == "female"
+            var_clf = classifiers["variety-female"]
+
         var_classes, var_predictions = predict_author_proba(
-            author=auth,
-            model=classifiers["variety"] )
+        author=auth,
+        model=var_clf )
         var_max_idx = var_predictions.index(max(var_predictions))
         var_predicted = var_classes[var_max_idx]
 

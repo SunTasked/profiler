@@ -32,6 +32,9 @@ parser.add_argument("--out","--output-dir", type=str, dest="output_dir",
 parser.add_argument("--classifiers-dir", type=str, dest="classifiers_dir",
                     help="specify the directory from which the execution \
                     pipelines will be loaded")
+parser.add_argument("--classification-type", type=str, dest="classification_type",
+                    help="specify the type of classification required \
+                    [loose / successive]")
 parser.add_argument("--hyper-parameters", type=str, dest="hyper_parameters",
                     default="",
                     help="specify a config file listing the hyper parameters \
@@ -88,6 +91,7 @@ if usr_request == "classify":
 
     classifier_opt = {
         "classifiers-dir"      : args.classifiers_dir,
+        "classification-type"  : args.classification_type,
         "input-dir"            : args.input_dir,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,

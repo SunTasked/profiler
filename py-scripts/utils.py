@@ -219,7 +219,7 @@ def clean_options_paths(args, verbose):
             args.processed_tweets_dir = format_dir_name(
                 args.processed_tweets_dir )
 
-    # execution directory - optional
+    # classifiers directory - optional
     if args.classifiers_dir and not(dir_exists(args.classifiers_dir)):
         abort_clean("Models binaries directory path is incorrect")
     elif args.classifiers_dir: 

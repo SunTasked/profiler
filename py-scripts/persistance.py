@@ -35,7 +35,7 @@ def save_model(pipeline, output_dir, filename, verbose):
         print("Model Saved.\n")
 
 
-def load_classifiers(classifier_dir_path, verbose):
+def load_classifiers(classifier_dir_path, classification_type, verbose):
     '''
     Loads the required classifiers for the PAN17 task.
     '''
@@ -53,14 +53,28 @@ def load_classifiers(classifier_dir_path, verbose):
     gdr_pipe = load_model(gdr_clf_path)
     classifiers["gender"] = gdr_pipe
 
-    # variety classifier
+    # variety classifier(s)
     if verbose:
-        print("    - loading variety classifier")
-    var_clf_path = [path for path in listdir(
-        classifier_dir_path + "variety" ) if path.endswith('.clf')][0]
-    var_clf_path = classifier_dir_path + "variety/" + var_clf_path
-    var_pipe = load_model(var_clf_path)
-    classifiers["variety"] = var_pipe
+        print("    - loading variety classifier(s)")
+    if classification_type == "loose":
+        var_clf_path = [path for path in listdir(
+            classifier_dir_path + "variety" ) if path.endswith('.clf')][0]
+        var_clf_path = classifier_dir_path + "variety/" + var_clf_path
+        var_pipe = load_model(var_clf_path)
+        classifiers["variety"] = var_pipe
+
+    else: #classification_type == "successive":
+        male_var_clf_path = [path for path in listdir(
+            classifier_dir_path + "variety" ) if path.endswith('.male.clf')][0]
+        male_var_clf_path = classifier_dir_path + "variety/" + male_var_clf_path
+        var_male_pipe = load_model(male_var_clf_path)
+        classifiers["variety-male"] = var_male_pipe
+
+        female_var_clf_path = [path for path in listdir(
+            classifier_dir_path + "variety" ) if path.endswith('.female.clf')][0]
+        female_var_clf_path = classifier_dir_path + "variety/" + female_var_clf_path
+        var_female_pipe = load_model(female_var_clf_path)
+        classifiers["variety-female"] = var_female_pipe
 
     if verbose:
         print("Classifiers Loading --- success in %.3f seconds\n" %(time()-t0))
