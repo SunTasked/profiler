@@ -38,13 +38,15 @@ def evaluate(options):
         t0 = time()
 
     Authors = []
-    file_name_list = [f for f in listdir(options["input-dir"]) 
-        if isfile(join(options["input-dir"], f))]
-    for file_name in file_name_list:
-        auth = load_author_file(
-            file_path=options["input-dir"]+file_name,
-            verbose=options["verbosity"]>1 )
-        Authors.append(auth)
+    for l_dir in language_dirs:
+        l_path = format_dir_name(options["input-dir"]+l_dir)
+        file_name_list = [f for f in listdir(l_path) 
+            if isfile(join(l_path, f))]
+        for file_name in file_name_list:
+            auth = load_author_file(
+                file_path=l_path+file_name,
+                verbose=options["verbosity"]>1 )
+            Authors.append(auth)
 
     if options["verbosity"]:
         print("Files loaded : " + str(len(Authors)))
