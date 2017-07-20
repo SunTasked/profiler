@@ -19,67 +19,49 @@ def get_printable_tweet(tweet_text):
     return re.sub(u'[^\x00-\x7f]',u'', tweet_text)
 
 
-def build_corpus(authors, labels, shuffle=True, verbosity_level=1):
+def build_corpus(authors, label_type, verbosity=1):
     '''
     Given an Author object this function returns a corpus of tweet labelled
-    Labels can be set with the gender_label and age_label
-    At least one label must be set to true
-    Returns all the unique labels found
+    respecting the label type specified
     '''
 
-    if verbosity_level:
+    if verbosity > 1:
         print("Starting Corpus Building ...")
-
-    if not(labels):
-        print("Corpus Building --- failure")
-        print("No label selected.")
-        return None
 
     # Building tweet Corpus
     t0 = time()
     tweets = []
-    corpus_labels = []
-    indexes = []
+    labels = []
 
     for author in authors:
+        tweets += author["tweets"]
+        labels += [author[label_type] for t in author["tweets"]]
 
-        label = ''
-        if labels == 'l'  or labels == 'language':
-            label += author["lang"] + " "
-        elif labels == 'v'  or labels == 'variety':
-            label += author["variety"] + " "
-        elif labels == 'g'  or labels == 'gender':
-            label += author["gender"] + " "
-        label = label[:-1]
-
-        for idx, tweet in enumerate(author["tweets"]):
-            tweets.append(tweet)
-            indexes.append(idx)
-            corpus_labels.append(label)
-    
-    labels_unique = list(set(corpus_labels))
-    corpus = DataFrame({"tweets" : tweets, "class" : corpus_labels}, 
-                index=indexes)
-
-    if shuffle :
-        corpus = corpus.reindex(numpy.random.permutation(corpus.index))
-
-    if verbosity_level:
-        print("Labels used : " + str(len(labels_unique)))
-        for l in labels_unique:
-            print("   - " + l)
-
-    if verbosity_level :
+    if verbosity > 1 :
         print("Corpus Building --- success in : " + 
             "{0:.2f}".format(time() - t0) + " seconds" + "\n")
 
 
-    # At this point, the corpus is a table with 2 columns:
-    # corpus['tweets'] which contains all the tweets (textual values)
-    # corpus['class'] which contains the classes associated with each tweets
-    # boths columns are linked thanks to indices (but this aspect is hidden 
-    # from the user)
-    return corpus, labels_unique
+    # At this point, the corpus is a dictionnary with 2 entries:
+    # object['tweets'] which contains all the tweets (textual values)
+    # object['class'] which contains the classes associated with each tweets
+    return {"tweets" : tweets, "labels" : labels}
+
+
+def get_labels(lang, label_type):
+    '''
+    Given a configuration of the training (language and label type), returns
+    the labels available.
+    '''
+
+    if label_type == 'variety':
+        return get_variety_labels(lang)
+
+    if label_type == 'gender':
+        return ["male", "female"]
+
+    return []
+
 
 def print_corpus(corpus):
     '''
@@ -88,6 +70,7 @@ def print_corpus(corpus):
     tweets = corpus['tweets'].values
     for t in tweets: 
         print(get_printable_tweet(t))
+
 
 def abort_clean (error_msg, error_msg2=""):
     '''
@@ -100,6 +83,7 @@ def abort_clean (error_msg, error_msg2=""):
     print(" -- ABORTING EXECUTION --")
     print()
     exit()
+
 
 def format_dir_name(dir_path):
     '''
@@ -123,6 +107,7 @@ def print_scores(scores):
     print("    - resulting confusion matrix :")
     
     print(stringify_cm(scores["confusion_matrix"],scores["labels"]))
+
 
 def stringify_cm(cm, labels, hide_zeroes=False, hide_diagonal=False,
     hide_threshold=None):
@@ -151,6 +136,7 @@ def stringify_cm(cm, labels, hide_zeroes=False, hide_diagonal=False,
             cm_string += cell + ' '
         cm_string += "\n"
     return cm_string
+
 
 def create_dir(new_dir):
     """
@@ -196,9 +182,9 @@ def file_exists(file_path):
     return os.path.isfile(file_path)
 
 
-def clean_options_paths(args, verbose):
+def clean_options(args):
     """
-    Checks if all paths are correct (if all the files/dir they point to exist)
+    Checks if all options are correct (if all the files/dir they point to exist)
     """
 
     # input directory - mandatory
@@ -235,6 +221,25 @@ def clean_options_paths(args, verbose):
     if args.hyper_parameters and not(file_exists(args.hyper_parameters)):
         abort_clean("Hyper parameters file doesn't exist")
 
+    # label type - optional
+    if args.label_type:
+        if args.label_type == "v" :
+            args.label_type = "variety"
+        if args.label_type == "g" :
+            args.label_type = "gender"
+        if not(args.label_type in ["gender", "variety"]) :
+            abort_clean("Ill-specified label type")
+
+    # strategy - optional
+    if args.strategy:
+        if args.strategy == "a" :
+            args.strategy = "aggregate"
+        if args.strategy == "d" :
+            args.strategy = "dissociate"
+        if not(args.strategy in ["aggregate", "dissociate"]) :
+            abort_clean("Ill-specified strategy")
+
+
     return args
 
 
@@ -262,6 +267,7 @@ def get_variety_labels(language_code):
     if language_code == "ar":
         return ['gulf','levantine','maghrebi','egypt']
     return []
+
 
 def get_gender_labels():
     '''

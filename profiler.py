@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 # add path to the python scripts
 sys.path.insert(0, './py-scripts')
-from utils import integer, abort_clean, dir_exists, clean_options_paths
+from utils import integer, abort_clean, dir_exists, clean_options
 
 ########################################
 ########### Argument Parser ############
@@ -12,11 +12,16 @@ from utils import integer, abort_clean, dir_exists, clean_options_paths
 parser = ArgumentParser(description="profiler v1.0")
 parser.add_argument("program")
 parser.add_argument("action")
-parser.add_argument("-l", "--labels",  type=str, dest="selected_labels", 
+parser.add_argument("-l", "--label-type",  type=str, dest="label_type", 
                     default="",
-                    help="specify which labels you wish to use on the output \
-                    data (combinations are available) \
-                    ['l' for language - 'v' for variety - 'g' for gender]")
+                    help="specify which type of labels you wish to use on the\
+                    output data (combinations are available) \
+                    ['v' for variety - 'g' for gender]")
+parser.add_argument("-s", "--strategy",  type=str, dest="strategy", 
+                    default="dissociate",
+                    help="specify if you want to : \
+                    \"aggregate\" the tweets in one chunk or \
+                    \"dissociate\" the tweets (keep them as they are).")
 parser.add_argument("-c", "--classifier", action='append',
                     dest="classifier", default=[],
                     help="The selected classification algorithm")
@@ -45,7 +50,7 @@ parser.add_argument("--no-cross-validation", action='store_false',
 parser.add_argument("--truth-dir", type=str, dest="truth_dir",
                     help="specify a truth directory to evaluate the classification \
                     results")
-parser.add_argument("-s", "--scores",  type=str, dest="scores",
+parser.add_argument("--scores",  type=str, dest="scores",
                     default="precision",
                     help="The score function to optimize ('-' separated)")
 parser.add_argument("--processed-tweets-dir", type=str,
@@ -73,8 +78,8 @@ usr_request = args.action
 #   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
 
 
-# Check and Clean directory paths :
-args = clean_options_paths(args, args.verbosity)
+# Check and Clean arguments :
+args = clean_options(args)
 
 #------------------------------------------------------------------------------
 # [Contextual] Classify a given dataset
@@ -120,7 +125,7 @@ elif usr_request == "compare":
         "classifier"           : args.classifier,
         "features"             : args.features,
         "input-dir"            : args.input_dir,
-        "labels"               : args.selected_labels,
+        "labels"               : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
         "verbosity"            : args.verbosity
@@ -170,7 +175,7 @@ elif usr_request == "optimize":
     optimize_opt = {
         "hyper-parameters"     : args.hyper_parameters,
         "input-dir"            : args.input_dir,
-        "labels"               : args.selected_labels,
+        "labels"               : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
         "verbosity"            : args.verbosity
@@ -200,9 +205,10 @@ elif usr_request == "train":
         "cross-validation"     : args.cross_validation,
         "features"             : args.features,
         "input-dir"            : args.input_dir,
-        "labels"               : args.selected_labels,
+        "label_type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
+        "strategy"             : args.strategy,
         "verbosity"            : args.verbosity
         }
 

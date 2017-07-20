@@ -5,13 +5,14 @@ from sklearn.base import clone
 from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import KFold
 
+from act_classifier import predict_author_proba
 from classifiers import get_classifier
 from features import get_features_extr
 from persistance import save_model, save_scores
 from dataset_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
 from pipeline import get_pipeline
-from utils import build_corpus, abort_clean, print_scores
-from utils import get_classifier_name, get_features_extr_name
+from utils import build_corpus, abort_clean, print_scores, get_printable_tweet
+from utils import get_classifier_name, get_features_extr_name, get_labels
 
 
 #------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ def train(options) :
 
     #--------------------------------------------------------------------------
     # Check basic requirements
-    if not (options["labels"]):
+    if not (options["label_type"]):
         abort_clean("Labels not specified", "expected 'l', 'g' or 'v'")
     
     if not (options["features"]):
@@ -45,36 +46,17 @@ def train(options) :
 
 
     #--------------------------------------------------------------------------
-    # Load the tweets
-    if 'l' in options["labels"] or "language" in options["labels"]: 
-        # load all tweets for language classification
-        Authors = parse_tweets_from_main_dir(
-            input_dir=options["input-dir"], 
-            output_dir=options["processed-tweets-dir"],
-            verbosity_level=options["verbosity"])
-    else : 
-        # load tweets in one language for variety or gender classification
-        Authors = parse_tweets_from_dir(
-            input_dir=options["input-dir"], 
-            output_dir=options["processed-tweets-dir"],
-            label=True,
-            verbosity_level=options["verbosity"])
+    # Load the tweets in one language for variety or gender classification
+    Authors = parse_tweets_from_dir(
+        input_dir=options["input-dir"], 
+        output_dir=options["processed-tweets-dir"],
+        label=True,
+        strategy=options["strategy"],
+        verbosity_level=options["verbosity"])
 
     if not (Authors):
         abort_clean("Tweets loading failed")
 
-
-    #--------------------------------------------------------------------------
-    # Build the corpus and label the tweets
-    corpus, labels = build_corpus(
-        authors=Authors, 
-        labels=options["labels"],
-        shuffle=False, 
-        verbosity_level=options["verbosity"])
-
-    if corpus.empty or not(labels):
-        abort_clean("Corpus building failed")
-    
 
     #--------------------------------------------------------------------------
     # Load the classifier
@@ -109,11 +91,11 @@ def train(options) :
     # train and cross validate results
     if (options["cross-validation"]):
         if(options["verbosity"]):
-            print("Model Training with cross validation")
+            print("Model Training with cross validation\n")
 
         pipeline, scores = train_model_cross_validation(
-                            corpus=corpus, 
-                            labels=labels, 
+                            authors=Authors,
+                            label_type = options["label_type"], 
                             pipeline=pipeline, 
                             verbose=options["verbosity"])
         
@@ -131,13 +113,13 @@ def train(options) :
     # train without validation --> output-dir required
     else:
         if options["verbosity"]:
-            print("Model Training without cross validation")
+            print("Model Training without cross validation\n")
         if not(options["output-dir"]):
             abort_clean(
                 "No output directory specified.", 
                 "Training without persisting is not allowed")
         pipeline = train_model(
-                    corpus=corpus,
+                    authors=Authors,
                     pipeline=pipeline, 
                     verbose=options["verbosity"])
 
@@ -175,11 +157,11 @@ def train_model(corpus, pipeline, verbose):
         print("Starting model training ... (this may take some time)")
 
     # retrieve tweets and labels
-    train_text = corpus['tweets'].values
-    train_y = corpus['class'].values
+    train_tweets = corpus['tweets']
+    train_labels = corpus['labels']
 
     # train the pipeline
-    pipeline.fit(train_text, train_y)
+    pipeline.fit(train_tweets, train_labels)
     
     if verbose :
         print("Model training complete in %.3f seconds\n"  % (time() - t0))
@@ -187,13 +169,24 @@ def train_model(corpus, pipeline, verbose):
     return pipeline
 
 
-def train_model_cross_validation(corpus, labels, pipeline, verbose=1):
+def train_model_cross_validation(authors, label_type, pipeline, tweet_level=False, verbose=1):
     '''
     Takes a pipeline and train it on the specified corpus.
     Processes a cross-validation algorithm (K-fold) in order to evaluate the
     quality of the model.
     Returns the best trained pipeline (in terms of macro f-score).
     '''
+
+    labels = get_labels(
+        lang=authors[0]["lang"],
+        label_type=label_type )
+        
+    if not(labels):
+        abort_clean("Could not extract labels")
+    if verbose :
+        print("Labels extraction succeded.")
+        print("Available labels : " + " / ".join(labels) + "\n")
+    
 
     if verbose :
         t0 = time()
@@ -210,24 +203,43 @@ def train_model_cross_validation(corpus, labels, pipeline, verbose=1):
     # start Kfold cross validation.
     n_run = 1
     k_fold = KFold(n_splits=10, shuffle=True)
-    for train_indices, test_indices in k_fold.split(corpus):
+    authors = array(authors)
+    for train_indices, test_indices in k_fold.split(authors):
+        
+        # build train corpus
+        train_authors = authors[train_indices]
+        train_corpus = build_corpus(
+            authors=train_authors,
+            label_type=label_type,
+            verbosity=verbose)
+            
+        # build test corpus
+        test_authors = authors[train_indices]
+
         # train model
-        train_corpus = corpus.iloc[train_indices]
         pipeline = train_model(
             corpus=train_corpus, 
             pipeline=pipeline,
              verbose=0)
 
-        # test model 
-        test_text = corpus.iloc[test_indices]['tweets'].values
-        test_y = corpus.iloc[test_indices]['class'].values
-        predictions = pipeline.predict(test_text)
+        # test model
+        truthes = []
+        predictions = []
+        for author in test_authors : 
+            var_classes, var_predictions = predict_author_proba(
+                author=author,
+                model=pipeline )
+            var_max_idx = var_predictions.index(max(var_predictions))
+            label_predicted = var_classes[var_max_idx]
+            predictions.append(label_predicted)
+            truthes.append(author[label_type])
+            
         
         # compute metrics
-        confusion += confusion_matrix(test_y, predictions, labels=labels)
-        score_micro = f1_score(test_y, predictions, 
+        confusion += confusion_matrix(truthes, predictions, labels=labels)
+        score_micro = f1_score(truthes, predictions, 
             labels=labels, average="micro")
-        score_macro = f1_score(test_y, predictions, 
+        score_macro = f1_score(truthes, predictions, 
             labels=labels, average="macro")
 
         if verbose:

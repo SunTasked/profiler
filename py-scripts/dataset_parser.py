@@ -36,11 +36,14 @@ def process_text(tweet):
     return str(tweet)
 
 
-def parse_file(file_to_parse, file_to_save=None, verbose=False) :
+def parse_file(file_to_parse, strategy="dissociate", file_to_save=None, verbose=False) :
     '''
     Takes a input file name.
     Parses all the tweets it contains.
     If specified, the results of the parsing will be stored into file_to_save
+    the strategy argument specifies if you want to :
+        - "aggregate" the tweets in one chunk
+        - "dissociate" keep the tweets as they are.
     Returns an object containing :
         - "lang" : a string representing the tweets language
         - "tweets" : a table containing the tweets (utf8 encoding)
@@ -75,6 +78,9 @@ def parse_file(file_to_parse, file_to_save=None, verbose=False) :
         if (verbose):
             print (file_to_parse, idx, get_printable_tweet(processed_tweet))
     
+    if strategy == "aggregate":
+        tweets = [" ".join(tweets)]
+
     if (file_to_save):
         tree.write(file_to_save, encoding="utf8")
 
@@ -106,7 +112,7 @@ def filter_tweets (author, verbose=False):
     return tweets
 
 
-def parse_tweets_from_dir(input_dir, output_dir=None, label=True, verbosity_level=1) :
+def parse_tweets_from_dir(input_dir, output_dir=None, label=True, strategy="dissociate", verbosity_level=1) :
     '''
     Parses all the xml files directly in the input_dir (no recursion).
     Retrieves the attributes of the author stored in the truth file.
@@ -160,7 +166,12 @@ def parse_tweets_from_dir(input_dir, output_dir=None, label=True, verbosity_leve
         tweets = []
         save_file = output_dir + f if output_dir else None
         try:
-            author = parse_file(input_dir + f, save_file, verbosity_level > 2)
+            author = parse_file(
+                file_to_parse=input_dir + f,
+                strategy=strategy,
+                file_to_save=save_file,
+                verbose=verbosity_level > 2
+            )
         except:
             if verbosity_level > 1:
                 print("   Parsing file : " + f + " --- failure")

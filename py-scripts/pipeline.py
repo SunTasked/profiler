@@ -17,11 +17,12 @@ def get_pipeline(features_extr, classifier=None, verbose=1):
     # pipeline steps
     steps = []
 
-    # features extractors 
-    if isinstance(features_extr, list):
-        steps = features_extr
-    else:
-        steps = [features_extr]
+    # features extractors
+    if features_extr:
+        if isinstance(features_extr, list):
+            steps = features_extr
+        else:
+            steps = [features_extr]
     
     # classifiers
     if classifier :
