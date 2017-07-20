@@ -119,15 +119,16 @@ elif usr_request == "compare":
     #   - classifier           : classifiers code / path to config file
     #   - features             : features extractors code / path to config file
     #   - input-dir            : input directory for tweet loading
-    #   - labels               : which labels to train on
+    #   - label_type           : which labels to train on
 
     compare_opt = {
         "classifier"           : args.classifier,
         "features"             : args.features,
         "input-dir"            : args.input_dir,
-        "labels"               : args.label_type,
+        "label_type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
+        "strategy"             : args.strategy,
         "verbosity"            : args.verbosity
     }
 
@@ -136,7 +137,7 @@ elif usr_request == "compare":
 
 
 #------------------------------------------------------------------------------
-# [Contextual] Train a specified classifier
+# [Contextual] Evaluate a specified classifier
 elif usr_request == "evaluate":
     print("-----------------------------------")
     print("Starting Evaluating results")
@@ -170,14 +171,15 @@ elif usr_request == "optimize":
     #   - hyper-params         : a path to a file listing the hyper parameters
     #                            to be tuned (name + values)
     #   - input-dir            : input directory for tweet loading
-    #   - labels               : which labels to train on
+    #   - label_type           : which labels to train on
 
     optimize_opt = {
         "hyper-parameters"     : args.hyper_parameters,
         "input-dir"            : args.input_dir,
-        "labels"               : args.label_type,
+        "label_type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
+        "strategy"             : args.strategy,
         "verbosity"            : args.verbosity
     }
 
@@ -197,7 +199,7 @@ elif usr_request == "train":
     #   - classifier           : classifiers code / path to config file
     #   - features             : features extractors code / path to config file
     #   - input-dir            : input directory for tweet loading
-    #   - labels               : which labels to train on
+    #   - label-type           : which labels to train on
     #   - no-cross-validation  : assess if the classifier should be cross-valid
 
     trainer_opt = {

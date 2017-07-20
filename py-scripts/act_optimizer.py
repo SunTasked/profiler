@@ -32,44 +32,24 @@ def optimize(options):
 
     #--------------------------------------------------------------------------
     # Check basic requirements
-    if not (options["labels"]):
-        abort_clean("Labels not specified", "expected 'l', 'g' or 'v'")
+    if not (options["label_type"]):
+        abort_clean("Label type not specified", "expected 'v' or 'g'")
     
     if not (options["hyper-parameters"]):
         abort_clean("hyper parameters not specified")
 
-
     #--------------------------------------------------------------------------
-    # Load the tweets
-    if 'l' in options["labels"] or "language" in options["labels"]: 
-        # load all tweets for language classification
-        Authors = parse_tweets_from_main_dir(
-            input_dir=options["input-dir"], 
-            output_dir=options["processed-tweets-dir"],
-            verbosity_level=options["verbosity"])
-    else : 
-        # load tweets in one language for variety or gender classification
-        Authors = parse_tweets_from_dir(
-            input_dir=options["input-dir"], 
-            output_dir=options["processed-tweets-dir"],
-            label=True,
-            verbosity_level=options["verbosity"])
+    # Load the tweets in one language for variety or gender classification
+    Authors = parse_tweets_from_dir(
+        input_dir=options["input-dir"], 
+        output_dir=options["processed-tweets-dir"],
+        label=True,
+        strategy=options["strategy"],
+        verbosity_level=options["verbosity"])
 
     if not (Authors):
         abort_clean("Tweets loading failed")
 
-
-    #--------------------------------------------------------------------------
-    # Build the corpus and label the tweets
-    corpus, labels = build_corpus(
-        authors=Authors, 
-        labels=options["labels"],
-        shuffle=False, 
-        verbosity_level=options["verbosity"])
-
-    if corpus.empty or not(labels):
-        abort_clean("Corpus building failed")
-    
 
     #--------------------------------------------------------------------------
     # Load the optimize parameters
@@ -118,8 +98,10 @@ def optimize(options):
     for score in scores:
         print("Tuning hyper-parameters for %s" % score)
 
-        X_values = corpus["tweets"].values
-        y_labels = corpus["class"].values
+        optimize_corpus = build_corpus(
+            authors=Authors,
+            label_type=options["label_type"],
+            verbosity=options["verbosity"])
 
         clf_optimizer = GridSearchCV(
             estimator=pipeline,
@@ -137,7 +119,7 @@ def optimize(options):
         )
 
         # Start optimisation
-        clf_optimizer.fit(X_values, y_labels)
+        clf_optimizer.fit(optimize_corpus["tweets"], optimize_corpus["labels"])
 
         if options["verbosity"]:
             print("Best parameters set found on development set:")

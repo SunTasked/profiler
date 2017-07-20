@@ -29,8 +29,8 @@ def compare(options):
 
     #--------------------------------------------------------------------------
     # Check basic requirements
-    if not (options["labels"]):
-        abort_clean("Labels not specified", "expected 'l', 'g' or 'v'")
+    if not (options["label_type"]):
+        abort_clean("label type not specified", "expected 'l', 'g' or 'v'")
     
     if not (options["features"]):
         abort_clean("Features not specified")
@@ -41,38 +41,22 @@ def compare(options):
     if not (options["output-dir"]):
         abort_clean("Output directory not specified")
 
+    if not (options["strategy"]):
+        abort_clean("Strategy not specified")
+
 
     #--------------------------------------------------------------------------
     # Load the tweets
-    if 'l' in options["labels"] or "language" in options["labels"]: 
-        # load all tweets for language classification
-        Authors = parse_tweets_from_main_dir(
-            input_dir=options["input-dir"], 
-            output_dir=options["processed-tweets-dir"],
-            verbosity_level=options["verbosity"])
-    else : 
-        # load tweets in one language for variety or gender classification
-        Authors = parse_tweets_from_dir(
-            input_dir=options["input-dir"], 
-            output_dir=options["processed-tweets-dir"],
-            label=True,
-            verbosity_level=options["verbosity"])
+    Authors = parse_tweets_from_dir(
+        input_dir=options["input-dir"], 
+        output_dir=options["processed-tweets-dir"],
+        label=True,
+        strategy=options["strategy"],
+        verbosity_level=options["verbosity"])
 
     if not (Authors):
         abort_clean("Tweets loading failed")
 
-
-    #--------------------------------------------------------------------------
-    # Build the corpus and label the tweets
-    corpus, labels = build_corpus(
-        authors=Authors, 
-        labels=options["labels"],
-        shuffle=False, 
-        verbosity_level=options["verbosity"])
-
-    if corpus.empty or not(labels):
-        abort_clean("Corpus building failed")
-    
 
     #--------------------------------------------------------------------------
     # Load the classifiers
@@ -157,10 +141,10 @@ def compare(options):
             # Start training + cross validation
             try:
                 model, step_scores = train_model_cross_validation(
-                    corpus=corpus, 
-                    labels=labels, 
-                    pipeline=pipeline, 
-                    verbose=False)
+                        authors=Authors,
+                        label_type = options["label_type"], 
+                        pipeline=pipeline,
+                        verbose=False)
             except:
                 print("some error occured - the features extracted and the \
                     classifier are problably incompatible\n")

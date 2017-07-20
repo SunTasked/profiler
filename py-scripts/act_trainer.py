@@ -44,6 +44,9 @@ def train(options) :
     if not (options["classifier"]):
         abort_clean("Classifier not specified")
 
+    if not (options["strategy"]):
+        abort_clean("Strategy not specified")
+
 
     #--------------------------------------------------------------------------
     # Load the tweets in one language for variety or gender classification
@@ -205,7 +208,7 @@ def train_model_cross_validation(authors, label_type, pipeline, tweet_level=Fals
     k_fold = KFold(n_splits=10, shuffle=True)
     authors = array(authors)
     for train_indices, test_indices in k_fold.split(authors):
-        
+
         # build train corpus
         train_authors = authors[train_indices]
         train_corpus = build_corpus(
@@ -214,7 +217,7 @@ def train_model_cross_validation(authors, label_type, pipeline, tweet_level=Fals
             verbosity=verbose)
             
         # build test corpus
-        test_authors = authors[train_indices]
+        test_authors = authors[test_indices]
 
         # train model
         pipeline = train_model(
@@ -233,8 +236,8 @@ def train_model_cross_validation(authors, label_type, pipeline, tweet_level=Fals
             label_predicted = var_classes[var_max_idx]
             predictions.append(label_predicted)
             truthes.append(author[label_type])
-            
         
+
         # compute metrics
         confusion += confusion_matrix(truthes, predictions, labels=labels)
         score_micro = f1_score(truthes, predictions, 
