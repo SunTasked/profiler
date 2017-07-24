@@ -100,6 +100,7 @@ if usr_request == "classify":
         "input-dir"            : args.input_dir,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
+        "strategy"             : args.strategy,
         "verbosity"            : args.verbosity
         }
 

@@ -54,6 +54,7 @@ def classify(options):
             input_dir=format_dir_name(options["input-dir"]+lang), 
             output_dir=processed_tweets_dir,
             label=False,
+            strategy=options["strategy"],
             verbosity_level=options["verbosity"])
 
         if not (Authors):
