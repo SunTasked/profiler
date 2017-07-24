@@ -121,8 +121,14 @@ def train(options) :
             abort_clean(
                 "No output directory specified.", 
                 "Training without persisting is not allowed")
+
+        train_corpus = build_corpus(
+            authors=Authors,
+            label_type=options["label_type"],
+            verbosity=options["verbosity"])
+
         pipeline = train_model(
-                    authors=Authors,
+                    corpus=train_corpus,
                     pipeline=pipeline, 
                     verbose=options["verbosity"])
 
