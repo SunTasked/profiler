@@ -72,11 +72,6 @@ usr_request = args.action
 #######################################
 
 
-# Options available for every command:
-#   - output-dir           : output directory for results persistance
-#   - processed-tweets-dir : output directory for parsed tweet
-#   - verbosity            : verbosity level --> 0 (quiet) to 3 (noisy)
-
 
 # Check and Clean arguments :
 args = clean_options(args)

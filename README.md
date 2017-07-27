@@ -1,12 +1,15 @@
-# Profiler v1.2
+# Profiler v2.0
 
-author profiler tool using the scikit-learn library
+Author profiler tool using the scikit-learn library in the PAN@CLEF'17 context.
+
+Please refer to this [article](https://goo.gl/7AqPHA) for more informations.
 
 
 ******************************************************************************************************************
 
 ## Table of content
 
+* [Changes since last Release](#changes) -- changes since Profiler v1.2
 * [Requirements](#requirements) -- requirements for this project
 * [Usage](#usage) -- how to use the profiler tool
 * [Commands](#commands) -- available commands for the profiler tool and the available options
@@ -14,6 +17,16 @@ author profiler tool using the scikit-learn library
 * [Features](#features) -- available features extractors and default implementations
 * [Directory Structure](#dir-structure) -- outline regarding the structure of the project directory and sub-directories
 
+
+******************************************************************************************************************
+
+## Changes <a name="changes" />
+
+* Parser now includes nltk tweet tokenizer to perform a more efficient parsing
+* Core of the trainer has been re-implemented.
+* Added "dissociate" and "aggregate" strategies to the profiler.
+* Minor bug corrections and refactoring
+* Minor performances enhancements.
 
 ******************************************************************************************************************
 
@@ -28,8 +41,9 @@ Required additionnal libraries:
 | numpy        | 1.11.X  |       |
 | scikit-learn | 0.18.X  |       |
 | pandas       | 0.19.X  |       |
+| nltk         | 3.2.X   |       |
 
-**Note**: Some of these libraries require additionnal content to run on your system. Some of which might not be covered by python package managers such as pip. If you don't want to bother with the dependancies I would recommend installing anaconda (3.x) which handles the python scientific environnement for you.
+**Note**: Some of these libraries require additionnal content to run on your system. Some of which might not be covered by the official python package (pip). If you don't want to bother with the dependancies I would recommend installing anaconda (3.x) which handles the python scientific environnement for you.
 
 ******************************************************************************************************************
 
@@ -41,6 +55,37 @@ Required additionnal libraries:
 
 the command and the related options are detailed in the following **commands section**
 
+### Examples
+
+The following lines provide you with a subset of the profiler tool abilities. Please refer to the full documentation for a more complete experience.
+
+1) Download the [training dataset](https://goo.gl/EDpww2) and the [test dataset](https://goo.gl/gsLqrw)
+2) Extract both directories in the "training-data" directory : 
+3) Experiment :
+    * Train a model to classify the english authors on the variety of language used (directory training-data/pan17/en). We will consider the "aggregate" strategy and use a simple bigram model coupled with a naive bayes classifier. Please create a "train-test" directory in the "output" directory before using the command.
+        ```
+        python ./profiler.py train --strategy=aggregate --label-type=variety --features=wc2 --classifier=nbb --output-dir=./output/train-test/ --input-dir=./training-data/pan17/en --verbosity=1
+        ```
+    
+    * Optimize the parameters of a svm classifier on variety classification of the spanish corpus. We will consider the "aggregate" strategy and use tfidf features. Please create a "optimize-test" directory in the "output" directory before using the command. Although this command is accelerated via parralel execution, it takes a very long time (>24hours)
+        ```
+        python ./profiler.py optimize --label-type=variety --strategy=aggregate --hyper-parameters=./config-files/optimize-parameters/default/opt-tfidf-svm-default.json --input-dir=./training-data/pan17/es --output-dir=./output/test/ --verbosity=1
+        ```
+
+    * Compare the coupling performances of 2 different features extractors (a customised version of tfidf loaded from a file and the combination of lsa and ngrams) with the 2 learning algorithms (a customised version of Naive Bayes loaded from a file and SVM). We will adopt the "dissociate" strategy and train on the gender of Portuguese authors. Please create a "compare-test" directory in the "output" directory before using the command.
+        ```
+        python ./profiler.py compare --strategy=dissociate --label-type=gender --features=./config-files/feat-extractors/default/tfidf-default.json --features=lsa+wc2  --classifier=./config-files/classifier/default/nbb-default.json --classifier=svm --input-dir=./training-data/pan17/pt/ --output-dir=./output/compare-test/ --verbosity=1
+        ```
+
+    * Classify a test dataset using trained classifier. For this example, we will consider loose classification and dissociate strategy. Instead of training your own classifiers and fine tune them, you can download the following [trained models](https://goo.gl/5bSLwW) and unzip the archive in the "trained-classifiers" directory. Please create a "classify-test" directory in the "output" directory before using the command.
+        ```
+        python ./profiler.py classify --classification-type=loose --strategy=dissociate --classifiers-dir=./trained-classifiers/loose-classifiers --input-dir=./training-data/test-dataset --output-dir=./output/classify-test/ --verbosity=1
+        ```
+
+    * Evaluate your results post classification.  Please create a "evaluate-test" directory in the "output" directory before using the command.
+        ```
+        python .\profiler.py evaluate --input-dir .\output\test\ --output-dir .\output\evaluate-test\ --truth-dir .\training-data\pan17\
+        ```
 
 ******************************************************************************************************************
 
@@ -50,7 +95,7 @@ Use the folowing commands to conduct your experiments:
 
 | Command      | Purpose                                                          |
 |--------------|------------------------------------------------------------------|
-| **train**    | train a classifier, validate and persist it                      |
+| **train**    | train a classifier, cross-validate it and persist it             |
 | **classify** | use a trained classifier to predict labels of a given dataset    |
 | **compare**  | compare different classifiers on different sets of features      |
 | **optimize** | optimize parameters for a specified classifier / set of features |
@@ -59,25 +104,25 @@ Use the folowing commands to conduct your experiments:
 
 ### train options
 
-| option                 | mandatory               | purpose                                                                                                                                                                                                                         | Possible Value                                         |
-|------------------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| -l, --labels           | yes                     | Label you wish to predict. Possible labels are : language, variety and gender. Should you choose variety or gender, please specify a directory containing directly all the tweets (no sub directories)  | l, language or v, variety or g, gender                 |
-| -c, --classifier       | yes                     | The classifier you wish to use. The available classifiers are specified in the classifiers section. You can also specify a path to a classifier config file.                                                                    | classifier-code                                        |
-| -f, --features         | yes                     | The set of features you wish to use. The available set of features are specified in the features section. You can also specify a path to a features extractor config file.                                                      | features-code                                          |
-| --in, --input-dir      | yes                     | input directory from which the tweets will be extracted                                                                                                                                                                         | path to the input directory                            |
-| --out, output-dir      | yes                     | output directory into which the resulting model and additional training informations will be saved                                                                                                                              | path to the output directory (model and training data) |
-| --no-cross-validation  | no                      | Only use if you want to train on the whole dataset without cross-validation. Output directory must be specified in such case.                                                                                                   | /                                                      |
-| --processed-tweets-dir | no                      | output directory into which the processed tweets will be stored                                                                                                                                                                 | path to the output directory (tweets)                  |
-| -v, --verbosity        | no                      | verbosity level : from 0 (quiet) to 3 (noisy)                                                                                                                                                                                   | [0;3]                                                  |
-
-**Exemple** (windows) : python profiler.py train --labels l --classifier svm --features tfidf --in ./training-data/pan10-03-17 --output-dir ./output/pan17/lang --verbosity 1
+| option                 | mandatory | purpose                                                                                                                                                                                                | Possible Value                                         |
+|------------------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| -s, --strategy         | yes       | specify which tweets-aggregation strategy you wish to use.                                                                                                                                             | "dissociate" or "aggregate"                            |
+| -l, --label-type       | yes       | Label you wish to predict. Possible labels are : variety and gender. | v, variety or g, gender                                |
+| -c, --classifier       | yes       | The classifier you wish to use. The available classifiers are specified in the classifiers section. You can also specify a path to a classifier config file.                                           | classifier-code                                        |
+| -f, --features         | yes       | The set of features you wish to use. The available set of features are specified in the features section. You can also specify a path to a features extractor config file.                             | features-code                                          |
+| --in, --input-dir      | yes       | input directory from which the tweets will be extracted                                                                                                                                                | path to the input directory                            |
+| --out, output-dir      | yes       | output directory into which the resulting model and additional training informations will be saved                                                                                                     | path to the output directory (model and training data) |
+| --no-cross-validation  | no        | Only use if you want to train on the whole dataset without cross-validation and persist your model. Output directory must be specified in such case.                                                   | /                                                      |
+| --processed-tweets-dir | no        | output directory into which the processed tweets will be stored                                                                                                                                        | path to the output directory (tweets)                  |
+| -v, --verbosity        | no        | verbosity level : from 0 (quiet) to 3 (noisy)                                                                                                                                                          | [0;3]                                                  |
 
 
 ### optimize options
 
 | option                 | mandatory               | purpose                                                                                                                                                                                                                         | Possible Value                                         |
 |------------------------|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| -l, --labels           | yes                     | Label you wish to predict. Possible labels are : language, variety and gender. Should you choose variety or gender, please specify a directory containing directly all the tweets (no sub directories)                          | l, language or v, variety or g, gender                 |
+| -s, --strategy         | yes                     | specify which tweets-aggregation strategy you wish to use.                                                                                                                                             | "dissociate" or "aggregate"                            |
+| -l, --label-type       | yes                     | Label you wish to predict. Possible labels are : variety and gender. | v, variety or g, gender                                |
 | --hyper-parameters     | yes                     | Path to a file listing the hyper parameters you wish to tune and the values available.                                                                                                                                          | path to the hyper-params file                          |
 | --in, --input-dir      | yes                     | input directory from which the tweets will be extracted                                                                                                                                                                         | path to the input directory                            |
 | --out, output-dir      | yes                     | output directory into which the resulting model and additional training informations will be saved                                                                                                                              | path to the output directory (model and training data) |
@@ -90,7 +135,8 @@ Use the folowing commands to conduct your experiments:
 
 | option                 | mandatory               | purpose                                                                                                                                                                                                | Possible Value                                         |
 |------------------------|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| -l, --labels           | yes                     | Label you wish to predict. Possible labels are : language, variety and gender. Should you choose variety or gender, please specify a directory containing directly all the tweets (no sub directories) | l, language or v, variety or g, gender                 |
+| -s, --strategy         | yes                     | specify which tweets-aggregation strategy you wish to use.                                                                                                                                             | "dissociate" or "aggregate"                            |
+| -l, --label-type       | yes                     | Label you wish to predict. Possible labels are : variety and gender. | v, variety or g, gender                                |
 | -c, --classifier       | yes                     | The classifier you wish to use. The available classifiers are specified in the classifiers section. You can also specify a path to a classifier config file.                                           | classifier-code                                        |
 | -f, --features         | yes                     | The set of features you wish to use. The available set of features are specified in the features section. You can also specify a path to a features extractor config file.                             | features-code                                          |
 | --in, --input-dir      | yes                     | input directory from which the tweets will be extracted                                                                                                                                                | path to the input directory                            |
@@ -100,18 +146,19 @@ Use the folowing commands to conduct your experiments:
 
 **Note**: if you wish to use multiple classifiers and/or multiple sets of features you need to specify each one of them by using the related option (i.e for selecting both svm and mlp for comparison you need to call the *--classifier* option twice)
 
-**Exemple** (windows) : python profiler.py compare --labels l --classifier nbb --classifier svm --features wc2 --features tfidf --in ./training-data/pan10-03-17 --output-dir ./output/pan17/lang --verbosity 1
-
 
 ### classify options
-| option            | mandatory               | purpose                                                                                            | Possible Value                                         |
-|-------------------|-------------------------|----------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| --classifiers-dir | yes                     | directory containing all the classifiers for each language and label                               | path to the classifiers directory                      |
-| --in, --input-dir | yes                     | input directory from which the tweets will be extracted                                            | path to the input directory                            |
-| --out, output-dir | yes                     | output directory into which the resulting "predicted-author" files will be saved                   | path to the output directory (model and training data) |
-| -v, --verbosity   | no                      | verbosity level : from 0 (quiet) to 3 (noisy)                                                      | [0;3]                                                  |
+| option                | mandatory | purpose                                                                          | Possible Value                                         |
+|-----------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------------------|
+| --classifiers-dir     | yes       | directory containing all the classifiers for each language and label             | path to the classifiers directory                      |
+| --classification-type | yes       | selected classification type.                                                    | "loose" or "successive"                                |
+| -s, --strategy         | yes                     | specify which tweets-aggregation strategy you wish to use.                                                                                                                                             | "dissociate" or "aggregate"                            |
+| -l, --label-type      | yes       | Label you wish to predict. Possible labels are : variety and gender.             | v, variety or g, gender                                |
+| --in, --input-dir     | yes       | input directory from which the tweets will be extracted                          | path to the input directory                            |
+| --out, output-dir     | yes       | output directory into which the resulting "predicted-author" files will be saved | path to the output directory (model and training data) |
+| -v, --verbosity       | no        | verbosity level : from 0 (quiet) to 3 (noisy)                                    | [0;3]                                                  |
 
-**Note**: the output files will be saved in the output directory according to the PAN17 specifications
+**Note**: the output files will be saved in the output directory according to the PAN17 specifications. Please refer to the README located in the "trained-classifier" directory for further information regarding the classifier dir structure.
 
 
 ### evaluate options
