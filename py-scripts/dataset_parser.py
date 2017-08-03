@@ -75,9 +75,13 @@ def parse_file(file_to_parse, aggregation=1, file_to_save=None, verbose=False):
         if (verbose):
             print (file_to_parse, idx, get_printable_tweet(processed_tweet))
     
-    # tweets aggregation tries to build as many documents as it can (even incomplete if it must)
-    tweets = [" ".join(tweets[i:i+aggregation]) 
-        for i in range(0,len(tweets),aggregation)]
+    # tweets aggregation tries to build as many "complete" documents as it can
+    tweets_tmp = [" ".join(tweets[i:i+aggregation]) 
+        for i in range(0,len(tweets)-len(tweets)%aggregation,aggregation)]
+    # add the remaining tweets to the previous documents
+    for i, idx in enumerate(range(len(tweets)-len(tweets)%aggregation,len(tweets))):
+        tweets_tmp[i%len(tweets_tmp)] += " " + tweets[idx]
+    tweets = tweets_tmp
 
     # export of the new parsed tweets
     if (file_to_save):

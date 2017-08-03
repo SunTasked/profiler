@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import FeatureUnion
+from nltk.tokenize import TweetTokenizer
 
 from persistance import load_config
 from pipeline import get_pipeline
@@ -127,17 +128,21 @@ def get_wc2(config=None):
     '''
     extractr_name = ""
     extractr = None
+    tokenizr = TweetTokenizer(
+        preserve_case=True,
+        strip_handles=True, 
+        reduce_len=False)
 
     if not (config):
         extractr_name = "wc2-default"
-        extractr = CountVectorizer( #---------------------- Default Values
+        extractr = CountVectorizer( #----------------- Default Values
             input='content',
             encoding='utf-8',
             decode_error='ignore',
             strip_accents=None,
             analyzer='word',
             preprocessor=None,
-            tokenizer=None,
+            tokenizer=tokenizr.tokenize, #------------ None
             ngram_range=(1, 2), #--------------------- (1, 1)
             stop_words=None,
             lowercase=True,
@@ -156,6 +161,7 @@ def get_wc2(config=None):
             config["configuration"]["ngram_range"] = tuple(
                 config["configuration"]["ngram_range"] )
             config["configuration"]["dtype"] = np.int64
+            config["configuration"]["tokenizer"] = tokenizr.tokenize
 
             extractr = CountVectorizer(**(config["configuration"]))
         except:
