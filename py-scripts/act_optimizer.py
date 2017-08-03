@@ -38,13 +38,16 @@ def optimize(options):
     if not (options["hyper-parameters"]):
         abort_clean("hyper parameters not specified")
 
+    if not (options["aggregation"]):
+        abort_clean("Aggregation strategy not specified")
+
     #--------------------------------------------------------------------------
     # Load the tweets in one language for variety or gender classification
     Authors = parse_tweets_from_dir(
         input_dir=options["input-dir"], 
         output_dir=options["processed-tweets-dir"],
         label=True,
-        strategy=options["strategy"],
+        aggregation=options["aggregation"],
         verbosity_level=options["verbosity"])
 
     if not (Authors):

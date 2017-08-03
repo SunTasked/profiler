@@ -44,8 +44,8 @@ def train(options) :
     if not (options["classifier"]):
         abort_clean("Classifier not specified")
 
-    if not (options["strategy"]):
-        abort_clean("Strategy not specified")
+    if not (options["aggregation"]):
+        abort_clean("Aggregation strategy not specified")
 
 
     #--------------------------------------------------------------------------
@@ -54,7 +54,7 @@ def train(options) :
         input_dir=options["input-dir"], 
         output_dir=options["processed-tweets-dir"],
         label=True,
-        strategy=options["strategy"],
+        aggregation=options["aggregation"],
         verbosity_level=options["verbosity"])
 
     if not (Authors):

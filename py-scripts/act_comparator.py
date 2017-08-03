@@ -38,12 +38,6 @@ def compare(options):
     if not (options["classifier"]):
         abort_clean("Classifier not specified")
 
-    if not (options["output-dir"]):
-        abort_clean("Output directory not specified")
-
-    if not (options["strategy"]):
-        abort_clean("Strategy not specified")
-
 
     #--------------------------------------------------------------------------
     # Load the tweets
@@ -51,7 +45,7 @@ def compare(options):
         input_dir=options["input-dir"], 
         output_dir=options["processed-tweets-dir"],
         label=True,
-        strategy=options["strategy"],
+        aggregation=options["aggregation"],
         verbosity_level=options["verbosity"])
 
     if not (Authors):

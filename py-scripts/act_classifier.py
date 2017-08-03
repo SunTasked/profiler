@@ -28,9 +28,9 @@ def classify(options):
 
     #----------------------------------------------------------------------
     # Checking basic requirements
-    if not(options["classification-type"]  and options["classification-type"] in ["loose", "successive"]):
+    if not(options["classification-type"]  and 
+        options["classification-type"] in ["loose", "successive"]):
         abort_clean("Classification type incorrectly specified")
-
 
     if options["verbosity"]:
         print('Classificationtype is ' + options["classification-type"])
@@ -54,7 +54,7 @@ def classify(options):
             input_dir=format_dir_name(options["input-dir"]+lang), 
             output_dir=processed_tweets_dir,
             label=False,
-            strategy=options["strategy"],
+            aggregation=options["aggregation"],
             verbosity_level=options["verbosity"])
 
         if not (Authors):

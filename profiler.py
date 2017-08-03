@@ -17,11 +17,9 @@ parser.add_argument("-l", "--label-type",  type=str, dest="label_type",
                     help="specify which type of labels you wish to use on the\
                     output data (combinations are available) \
                     ['v' for variety - 'g' for gender]")
-parser.add_argument("-s", "--strategy",  type=str, dest="strategy", 
-                    default="dissociate",
-                    help="specify if you want to : \
-                    \"aggregate\" the tweets in one chunk or \
-                    \"dissociate\" the tweets (keep them as they are).")
+parser.add_argument("--aggregation-strategy",  type=integer, dest="aggregation", 
+                    default=1,
+                    help="specify the number of tweets per document")
 parser.add_argument("-c", "--classifier", action='append',
                     dest="classifier", default=[],
                     help="The selected classification algorithm")
@@ -85,17 +83,21 @@ if usr_request == "classify":
     print()
 
     # Options available :
-    #   - execution-dir        : path to a folder containing the pipe binaries
+    #   - aggregation          : number of tweets in a single document
+    #   - classifiers-dir      : directory containing the pipe binaries
+    #   - classification-type  : type of classification (loose or successive)
     #   - input-dir            : input directory for tweet loading
-    #   - output-dir           : output directory for resulting author files
+    #   - output-dir           : output directory for resulting files
+    #   - processed-tweets-dir : (legacy) directory for the parsed tweets
+    #   - verbosity            : noise level on the terminal
 
     classifier_opt = {
+        "aggregation"          : args.aggregation,
         "classifiers-dir"      : args.classifiers_dir,
         "classification-type"  : args.classification_type,
         "input-dir"            : args.input_dir,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
-        "strategy"             : args.strategy,
         "verbosity"            : args.verbosity
         }
 
@@ -112,19 +114,23 @@ elif usr_request == "compare":
     print()
 
     # Options available :
+    #   - aggregation          : number of tweets in a single document
     #   - classifier           : classifiers code / path to config file
     #   - features             : features extractors code / path to config file
     #   - input-dir            : input directory for tweet loading
     #   - label_type           : which labels to train on
+    #   - output-dir           : output directory for resulting files
+    #   - processed-tweets-dir : (legacy) directory for the parsed tweets
+    #   - verbosity            : noise level on the terminal
 
     compare_opt = {
+        "aggregation"          : args.aggregation,
         "classifier"           : args.classifier,
         "features"             : args.features,
         "input-dir"            : args.input_dir,
         "label_type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
-        "strategy"             : args.strategy,
         "verbosity"            : args.verbosity
     }
 
@@ -142,11 +148,14 @@ elif usr_request == "evaluate":
 
     # Options available :
     #   - input-dir            : input directory for predicted author files
+    #   - output-dir           : output directory for resulting files
+    #   - truth-dir            : directory containing the truth files
+    #   - verbosity            : noise level on the terminal
 
     evaluator_opt = {
-        "truth-dir"            : args.truth_dir,
         "input-dir"            : args.input_dir,
         "output-dir"           : args.output_dir,
+        "truth-dir"            : args.truth_dir,
         "verbosity"            : args.verbosity
         }
 
@@ -164,18 +173,22 @@ elif usr_request == "optimize":
     print()
 
     # Options available :
+    #   - aggregation          : number of tweets in a single document
     #   - hyper-params         : a path to a file listing the hyper parameters
     #                            to be tuned (name + values)
     #   - input-dir            : input directory for tweet loading
     #   - label_type           : which labels to train on
+    #   - output-dir           : output directory for resulting files
+    #   - processed-tweets-dir : (legacy) directory for the parsed tweets
+    #   - verbosity            : noise level on the terminal
 
     optimize_opt = {
+        "aggregation"          : args.aggregation,
         "hyper-parameters"     : args.hyper_parameters,
         "input-dir"            : args.input_dir,
         "label_type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
-        "strategy"             : args.strategy,
         "verbosity"            : args.verbosity
     }
 
@@ -192,13 +205,18 @@ elif usr_request == "train":
     print()
 
     # Options available :
+    #   - aggregation          : number of tweets in a single document
     #   - classifier           : classifiers code / path to config file
     #   - features             : features extractors code / path to config file
     #   - input-dir            : input directory for tweet loading
     #   - label-type           : which labels to train on
     #   - no-cross-validation  : assess if the classifier should be cross-valid
+    #   - output-dir           : output directory for resulting files
+    #   - processed-tweets-dir : (legacy) directory for the parsed tweets
+    #   - verbosity            : noise level on the terminal
 
     trainer_opt = {
+        "aggregation"          : args.aggregation,
         "classifier"           : args.classifier,
         "cross-validation"     : args.cross_validation,
         "features"             : args.features,
@@ -206,7 +224,6 @@ elif usr_request == "train":
         "label_type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
-        "strategy"             : args.strategy,
         "verbosity"            : args.verbosity
         }
 

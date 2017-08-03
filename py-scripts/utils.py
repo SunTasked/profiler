@@ -231,12 +231,8 @@ def clean_options(args):
             abort_clean("Ill-specified label type")
 
     # strategy - optional
-    if args.strategy:
-        if args.strategy == "a" :
-            args.strategy = "aggregate"
-        if args.strategy == "d" :
-            args.strategy = "dissociate"
-        if not(args.strategy in ["aggregate", "dissociate"]) :
+    if args.aggregation:
+        if not(args.aggregation in range(1,100)) :
             abort_clean("Ill-specified strategy")
 
 

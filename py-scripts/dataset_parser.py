@@ -25,25 +25,22 @@ def process_text(tweet):
     else:
         return u""
         
-    # filters
-    tweet = re.sub(u'https?:\/\/[^\s-]*', '', tweet, flags=re.MULTILINE)
-    tweet = re.sub(u'@[^\ ]*', '', tweet, flags=re.MULTILINE)
-    tweet = re.sub(u'#[A-Za-z0-9]+',lambda x: x.group().lower(), tweet)
-
-    if len(tweet) < 10:
-        return u""
+    # text filters
+    # urls
+    tweet = re.sub(u'https?:\/\/[^\s-]*', ' ', tweet, flags=re.MULTILINE)
+    # handles
+    tweet = re.sub(u'@[^\ ]*', ' ', tweet, flags=re.MULTILINE)
 
     return str(tweet)
 
 
-def parse_file(file_to_parse, strategy="dissociate", file_to_save=None, verbose=False) :
+def parse_file(file_to_parse, aggregation=1, file_to_save=None, verbose=False):
     '''
     Takes a input file name.
     Parses all the tweets it contains.
     If specified, the results of the parsing will be stored into file_to_save
-    the strategy argument specifies if you want to :
-        - "aggregate" the tweets in one chunk
-        - "dissociate" keep the tweets as they are.
+    the aggregation argument specifies the number of tweets you want to chunk into
+    each document
     Returns an object containing :
         - "lang" : a string representing the tweets language
         - "tweets" : a table containing the tweets (utf8 encoding)
@@ -78,9 +75,11 @@ def parse_file(file_to_parse, strategy="dissociate", file_to_save=None, verbose=
         if (verbose):
             print (file_to_parse, idx, get_printable_tweet(processed_tweet))
     
-    if strategy == "aggregate":
-        tweets = [" ".join(tweets)]
+    # tweets aggregation tries to build as many documents as it can (even incomplete if it must)
+    tweets = [" ".join(tweets[i:i+aggregation]) 
+        for i in range(0,len(tweets),aggregation)]
 
+    # export of the new parsed tweets
     if (file_to_save):
         tree.write(file_to_save, encoding="utf8")
 
@@ -100,19 +99,14 @@ def filter_tweets (author, verbose=False):
     n_init_tweets = len(tweets)
     if verbose: print ("      - Initial tweets = " + str(n_init_tweets))
 
-    # filter empty tweets
-    tweets = [t for t in tweets if len(t)>5]
-    n_empty_tweets = n_init_tweets - len(tweets)
-    if verbose: print ("      - Empty tweets = " + str(n_empty_tweets))
-
-    # HERE : insert other filter
+    # HERE : insert filter
 
     if verbose: print ("      - Saved tweets = " + str(len(tweets)))
 
     return tweets
 
 
-def parse_tweets_from_dir(input_dir, output_dir=None, label=True, strategy="dissociate", verbosity_level=1) :
+def parse_tweets_from_dir(input_dir, output_dir=None, label=True, aggregation=1, verbosity_level=1) :
     '''
     Parses all the xml files directly in the input_dir (no recursion).
     Retrieves the attributes of the author stored in the truth file.
@@ -168,7 +162,7 @@ def parse_tweets_from_dir(input_dir, output_dir=None, label=True, strategy="diss
         try:
             author = parse_file(
                 file_to_parse=input_dir + f,
-                strategy=strategy,
+                aggregation=aggregation,
                 file_to_save=save_file,
                 verbose=verbosity_level > 2
             )
@@ -228,7 +222,7 @@ def parse_tweets_from_dir(input_dir, output_dir=None, label=True, strategy="diss
                 % (time() - t0))
 
 
-    # ---------------------------- TWEET FILTERING:
+    # ---------------------------- TWEET FILTERING -- D
     if verbosity_level :
         t0 = time()
         print("Starting Tweets Filtering ...")
