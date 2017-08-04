@@ -64,22 +64,22 @@ The following lines provide you with a subset of the profiler tool abilities. Pl
 3) Experiment :
     * Train a model to classify the english authors on the variety of language used (directory training-data/pan17/en). We will consider the "aggregate" strategy and use a simple bigram model coupled with a naive bayes classifier. Please create a "train-test" directory in the "output" directory before using the command.
         ```
-        python ./profiler.py train --strategy=aggregate --label-type=variety --features=wc2 --classifier=nbb --output-dir=./output/train-test/ --input-dir=./training-data/pan17/en --verbosity=1
+        python ./profiler.py train --aggregation-strategy=100 --label-type=variety --features=wc2 --classifier=nbb --output-dir=./output/train-test/ --input-dir=./training-data/pan17/en --verbosity=1
         ```
     
     * Optimize the parameters of a svm classifier on variety classification of the spanish corpus. We will consider the "aggregate" strategy and use tfidf features. Please create a "optimize-test" directory in the "output" directory before using the command. Although this command is accelerated via parralel execution, it takes a very long time (>24hours)
         ```
-        python ./profiler.py optimize --label-type=variety --strategy=aggregate --hyper-parameters=./config-files/optimize-parameters/default/opt-tfidf-svm-default.json --input-dir=./training-data/pan17/es --output-dir=./output/test/ --verbosity=1
+        python ./profiler.py optimize --label-type=variety --aggregation-strategy=100 --hyper-parameters=./config-files/optimize-parameters/default/opt-tfidf-svm-default.json --input-dir=./training-data/pan17/es --output-dir=./output/test/ --verbosity=1
         ```
 
     * Compare the coupling performances of 2 different features extractors (a customised version of tfidf loaded from a file and the combination of lsa and ngrams) with the 2 learning algorithms (a customised version of Naive Bayes loaded from a file and SVM). We will adopt the "dissociate" strategy and train on the gender of Portuguese authors. Please create a "compare-test" directory in the "output" directory before using the command.
         ```
-        python ./profiler.py compare --strategy=dissociate --label-type=gender --features=./config-files/feat-extractors/default/tfidf-default.json --features=lsa+wc2  --classifier=./config-files/classifier/default/nbb-default.json --classifier=svm --input-dir=./training-data/pan17/pt/ --output-dir=./output/compare-test/ --verbosity=1
+        python ./profiler.py compare --aggregation-strategy=1 --label-type=gender --features=./config-files/feat-extractors/default/tfidf-default.json --features=lsa+wc2  --classifier=./config-files/classifier/default/nbb-default.json --classifier=svm --input-dir=./training-data/pan17/pt/ --output-dir=./output/compare-test/ --verbosity=1
         ```
 
     * Classify a test dataset using trained classifier. For this example, we will consider loose classification and dissociate strategy. Instead of training your own classifiers and fine tune them, you can download the following [trained models](https://goo.gl/5bSLwW) and unzip the archive in the "trained-classifiers" directory. Please create a "classify-test" directory in the "output" directory before using the command.
         ```
-        python ./profiler.py classify --classification-type=loose --strategy=dissociate --classifiers-dir=./trained-classifiers/loose-classifiers --input-dir=./training-data/test-dataset --output-dir=./output/classify-test/ --verbosity=1
+        python ./profiler.py classify --classification-type=loose --aggregation-strategy=1 --classifiers-dir=./trained-classifiers/loose-classifiers --input-dir=./training-data/test-dataset --output-dir=./output/classify-test/ --verbosity=1
         ```
 
     * Evaluate your results post classification.  Please create a "evaluate-test" directory in the "output" directory before using the command.

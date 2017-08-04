@@ -232,7 +232,7 @@ def clean_options(args):
 
     # strategy - optional
     if args.aggregation:
-        if not(args.aggregation in range(1,100)) :
+        if not(args.aggregation in range(1,101)) :
             abort_clean("Ill-specified strategy")
 
 
