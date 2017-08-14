@@ -5,7 +5,6 @@
             "extractr_name" : "gensim-doc2vec",
             "extractr_type" : "doc2vec",
             "configuration" : {
-                "dm":1,
                 "vector_size":300,
                 "window":5,
                 "min_count":2

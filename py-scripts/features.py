@@ -241,7 +241,7 @@ def get_lsa(config=None):
 
 # Doc2Vec
 #------------------------------------------------------------------------------
-def get_doc2vec(conf, verbose=False):
+def get_doc2vec(conf, dm, verbose=False):
     '''
     Instanciate a gensim doc given a conf file path.
     Returns the doc2vec model configured.
@@ -249,12 +249,10 @@ def get_doc2vec(conf, verbose=False):
     '''
 
     if conf:
-        dm          = conf["configuration"]["dm"]
         vector_size = conf["configuration"]["vector_size"]
         window      = conf["configuration"]["window"]
         min_count   = conf["configuration"]["min_count"]
     else:
-        dm = 1
         vector_size = 300
         window = 5
         min_count = 2

@@ -1,7 +1,7 @@
 from time import time
 from random import shuffle
 
-from numpy import array, zeros
+from numpy import array, zeros, concatenate
 from sklearn.base import clone
 from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import KFold
@@ -360,7 +360,8 @@ def train_model_gensim_cross_validation(authors, label_type,
         from gensim import models as gensim_models
 
         # get doc2vec model
-        model = get_doc2vec(conf,verbose)
+        model_dm = get_doc2vec(conf, 1, verbose)
+        model_pv = get_doc2vec(conf, 0, verbose)
 
         # build train corpus
         train_authors = authors[train_indices]
@@ -383,23 +384,31 @@ def train_model_gensim_cross_validation(authors, label_type,
                 words=tknzr.tokenize(t[1]), 
                 tags=[prefix]) )
         tweets = processed_tweets
-        model.build_vocab(tweets)
+        model_dm.build_vocab(tweets)
+        model_pv.build_vocab(tweets)
 
         # train doc2vec model
         shuffle(tweets)
-        model.train(
+        model_dm.train(
                 sentences=tweets, 
-                total_examples=model.corpus_count, 
-                epochs=1,
+                total_examples=model_dm.corpus_count, 
+                epochs=100,
                 start_alpha=0.025, 
                 end_alpha=0.0025)
-        model.delete_temporary_training_data()
+        model_dm.delete_temporary_training_data()
+        model_pv.train(
+                sentences=tweets, 
+                total_examples=model_pv.corpus_count, 
+                epochs=100,
+                start_alpha=0.025, 
+                end_alpha=0.0025)
+        model_pv.delete_temporary_training_data()
 
         # train dataset conversion (doc->vectors)
-        train_vectors = zeros((sum(idxs), model.vector_size))
+        train_vectors = zeros((sum(idxs), model_dm.vector_size*2))
         train_labels = []
-        for i, tag in enumerate(model.docvecs.doctags):
-            train_vectors[i] = model.docvecs[tag]
+        for i, tag in enumerate(model_dm.docvecs.doctags):
+            train_vectors[i] = concatenate((model_dm.docvecs[tag],model_pv.docvecs[tag]), axis=0)
             train_labels.append(tag.split('_')[0])
         train_labels = array(train_labels)
 
@@ -411,7 +420,8 @@ def train_model_gensim_cross_validation(authors, label_type,
         predictions = []
         for author in test_authors :
             # test dataset conversion (doc->vectors)
-            tweet_vectors = [model.infer_vector(tknzr.tokenize(tweet)) 
+            tweet_vectors = [concatenate((model_dm.infer_vector(tknzr.tokenize(tweet)),
+                             model_pv.infer_vector(tknzr.tokenize(tweet))), axis=0)
                                 for tweet in author["tweets"]]
 
             author_tmp = {"tweets" : tweet_vectors}
@@ -442,7 +452,7 @@ def train_model_gensim_cross_validation(authors, label_type,
 
         # save the pipeline if better than the current one
         if score_macro > best_f_score :
-            best_model = model
+            best_model = [model_dm, model_pv]
             best_pipeline = clone(pipeline, True)
             best_f_score = score_macro
 
