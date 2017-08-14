@@ -1,14 +1,16 @@
 from time import time
+from random import shuffle
 
-from numpy import array
+from numpy import array, zeros
 from sklearn.base import clone
 from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import KFold
+from nltk.tokenize import TweetTokenizer
 
 from act_classifier import predict_author_proba
 from classifiers import get_classifier
-from features import get_features_extr
-from persistance import save_model, save_scores
+from features import get_features_extr, get_doc2vec
+from persistance import save_model, save_scores, load_config
 from dataset_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
 from pipeline import get_pipeline
 from utils import build_corpus, abort_clean, print_scores, get_printable_tweet
@@ -21,7 +23,8 @@ from utils import get_classifier_name, get_features_extr_name, get_labels
 
 def train(options) :
     '''
-    Trains a specified classifier on a specified dataset using specified feats
+    Trains a specified classifier on a specified dataset using specified 
+    feature extractors.
     Will proceed as follows :
         - loads the dataset
         - builds the corpus
@@ -74,9 +77,11 @@ def train(options) :
     #--------------------------------------------------------------------------
     # Load the features extractors
 
-    features_extr = get_features_extr(        
-        features_str_list=options["features"][0],
-        verbose=options["verbosity"])
+    features_extr = None
+    if not(options["gensim"]):
+        features_extr = get_features_extr(        
+            features_str_list=options["features"][0],
+            verbose=options["verbosity"])
 
 
     #--------------------------------------------------------------------------
@@ -96,17 +101,35 @@ def train(options) :
         if(options["verbosity"]):
             print("Model Training with cross validation\n")
 
-        pipeline, scores = train_model_cross_validation(
+        if options["gensim"]:
+            model, pipeline, scores = train_model_gensim_cross_validation(
+                            authors=Authors,
+                            label_type = options["label_type"], 
+                            pipeline=pipeline,
+                            config=options["hyper-parameters"],
+                            verbose=options["verbosity"])
+        else:                    
+            pipeline, scores = train_model_cross_validation(
                             authors=Authors,
                             label_type = options["label_type"], 
                             pipeline=pipeline, 
                             verbose=options["verbosity"])
+
+        
         
         if options["verbosity"]:
             print_scores(scores)
         if options["output-dir"]:
-            filename = str(get_features_extr_name(features_extr) + 
-                "+" + get_classifier_name(classifier))
+            if options["gensim"]:
+                filename = str("doc2vec" + 
+                    "-dm_" + str(model.dm) +
+                    "-siz_" + str(model.vector_size) +
+                    "-win_" + str(model.window) +
+                    "-cnt_" + str(model.min_count) +
+                    get_classifier_name(classifier))
+            else:
+                filename = str(get_features_extr_name(features_extr) + 
+                    "+" + get_classifier_name(classifier))
             save_scores(
                 scores=scores,
                 output_dir=options["output-dir"],
@@ -135,8 +158,12 @@ def train(options) :
 
     #--------------------------------------------------------------------------
     # Save the resulting model
-    filename = str(get_features_extr_name(features_extr) + 
+    if options["gensim"]:
+        filename = "doc2vec+" + get_classifier_name(classifier)
+    else:
+        filename = str(get_features_extr_name(features_extr) + 
             "+" + get_classifier_name(classifier))
+    
     save_model(
         pipeline=pipeline, 
         output_dir=options["output-dir"],
@@ -178,7 +205,7 @@ def train_model(corpus, pipeline, verbose):
     return pipeline
 
 
-def train_model_cross_validation(authors, label_type, pipeline, tweet_level=False, verbose=1):
+def train_model_cross_validation(authors, label_type, pipeline, verbose=1):
     '''
     Takes a pipeline and train it on the specified corpus.
     Processes a cross-validation algorithm (K-fold) in order to evaluate the
@@ -276,3 +303,157 @@ def train_model_cross_validation(authors, label_type, pipeline, tweet_level=Fals
                 "labels"          : labels}
     
     return best_pipeline, scores
+
+
+
+def train_model_gensim_cross_validation(authors, label_type, 
+                                        pipeline, config="", verbose=1):
+    '''
+    Takes a doc2vec model and trains it on the specified corpus.
+    Takes a classifier and trains it on the doc2vec model vectors.
+    Processes a cross-validation algorithm (K-fold) in order to evaluate the
+    quality of the overall model.
+    Returns the best trained pipeline (in terms of macro f-score).
+    '''
+    labels = get_labels(
+        lang=authors[0]["lang"],
+        label_type=label_type )
+        
+    if not(labels):
+        abort_clean("Could not extract labels")
+
+    if verbose :
+        print("Labels extraction succeded.")
+        print("Available labels : " + " / ".join(labels) + "\n")
+    
+
+    if verbose :
+        t0 = time()
+        print("Starting model Cross Validation ... (this may take some time)")
+
+
+    # load doc2vec conf
+    conf = []
+    if config:
+        conf = load_config(config)["extractors"][0] # legacy conf files
+        if verbose:
+            print("loading doc2vec config file from disk")
+
+    # Kfold parameters.
+    confusion = array(
+        [[0 for x in range(len(labels))] for y in range(len(labels))])
+    scores = []
+    best_f_score = 0
+    best_pipeline = None
+    best_model = None
+    scores_micro=[]
+    scores_macro=[]
+    n_run = 1
+    tknzr = TweetTokenizer(strip_handles=True, reduce_len=True)
+    k_fold = KFold(n_splits=10, shuffle=True)
+    authors = array(authors)
+
+    # start Kfold cross validation.
+    for train_indices, test_indices in k_fold.split(authors):
+        
+        # import gensim lib (heavy load)
+        from gensim import models as gensim_models
+
+        # get doc2vec model
+        model = get_doc2vec(conf,verbose)
+
+        # build train corpus
+        train_authors = authors[train_indices]
+        train_corpus = build_corpus(
+            authors=train_authors,
+            label_type=label_type,
+            verbosity=verbose)
+
+        # build test corpus
+        test_authors = authors[test_indices]
+
+        # learn the vocabulary (tokenisation of each tweet)
+        tweets = list(zip(train_corpus["labels"],train_corpus["tweets"]))
+        processed_tweets = []
+        idxs = [0 for l in labels]
+        for t in tweets:
+            prefix = t[0] + "_" + str(idxs[labels.index(t[0])])
+            idxs[labels.index(t[0])] += 1
+            processed_tweets.append(gensim_models.doc2vec.LabeledSentence(
+                words=tknzr.tokenize(t[1]), 
+                tags=[prefix]) )
+        tweets = processed_tweets
+        model.build_vocab(tweets)
+
+        # train doc2vec model
+        shuffle(tweets)
+        model.train(
+                sentences=tweets, 
+                total_examples=model.corpus_count, 
+                epochs=1,
+                start_alpha=0.025, 
+                end_alpha=0.0025)
+        model.delete_temporary_training_data()
+
+        # train dataset conversion (doc->vectors)
+        train_vectors = zeros((sum(idxs), model.vector_size))
+        train_labels = []
+        for i, tag in enumerate(model.docvecs.doctags):
+            train_vectors[i] = model.docvecs[tag]
+            train_labels.append(tag.split('_')[0])
+        train_labels = array(train_labels)
+
+        # train classifier
+        pipeline.fit(train_vectors, train_labels)
+
+        # test models
+        truthes = []
+        predictions = []
+        for author in test_authors :
+            # test dataset conversion (doc->vectors)
+            tweet_vectors = [model.infer_vector(tknzr.tokenize(tweet)) 
+                                for tweet in author["tweets"]]
+
+            author_tmp = {"tweets" : tweet_vectors}
+            var_classes, var_predictions = predict_author_proba(
+                author=author_tmp,
+                model=pipeline )
+            var_max_idx = var_predictions.index(max(var_predictions))
+            label_predicted = var_classes[var_max_idx]
+            predictions.append(label_predicted)
+            truthes.append(author[label_type])
+        
+
+        # compute metrics
+        confusion += confusion_matrix(truthes, predictions, labels=labels)
+        score_micro = f1_score(truthes, predictions, 
+            labels=labels, average="micro")
+        score_macro = f1_score(truthes, predictions, 
+            labels=labels, average="macro")
+
+        if verbose:
+            print("Fold " + str(n_run) + " : micro_f1=" + str(score_micro) +
+                " macrof1=" + str(score_macro))
+
+        # store for avg
+        scores_micro.append(score_micro)
+        scores_macro.append(score_macro)
+        n_run+=1
+
+        # save the pipeline if better than the current one
+        if score_macro > best_f_score :
+            best_model = model
+            best_pipeline = clone(pipeline, True)
+            best_f_score = score_macro
+
+    if verbose :
+        print("Model Cross Validation complete in %.3f seconds.\n" 
+             % (time() - t0))
+
+    scores = {  "mean_score_micro": sum(scores_micro)/len(scores_micro),
+                "mean_score_macro": sum(scores_macro)/len(scores_macro),
+                "confusion_matrix": confusion,
+                "best_macro_score": best_f_score,
+                "labels"          : labels}
+    
+    return best_model, best_pipeline, scores

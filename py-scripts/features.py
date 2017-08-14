@@ -237,3 +237,47 @@ def get_lsa(config=None):
 
     res = (extractr_name, extractr)
     return res
+
+
+# Doc2Vec
+#------------------------------------------------------------------------------
+def get_doc2vec(conf, verbose=False):
+    '''
+    Instanciate a gensim doc given a conf file path.
+    Returns the doc2vec model configured.
+    If the conf file path is not specified, returns a default doc2vec model.
+    '''
+
+    if conf:
+        dm          = conf["configuration"]["dm"]
+        vector_size = conf["configuration"]["vector_size"]
+        window      = conf["configuration"]["window"]
+        min_count   = conf["configuration"]["min_count"]
+    else:
+        dm = 1
+        vector_size = 300
+        window = 5
+        min_count = 2
+    
+    # import gensim models (heavy load)
+    from gensim import models as gensim_models
+    # creates a new doc2vec model
+    model = gensim_models.Doc2Vec(
+        documents=None, 
+        dm_mean=None, 
+        dm=dm,
+        dbow_words=0, 
+        dm_concat=0,
+        dm_tag_count=1, 
+        docvecs=None, 
+        docvecs_mapfile=None, 
+        comment=None, 
+        trim_rule=None,
+        size=vector_size, 
+        window=window, 
+        min_count=min_count, 
+        workers=8,
+        alpha=0.025, 
+        min_alpha=0.0025 )
+    
+    return model

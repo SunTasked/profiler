@@ -35,19 +35,20 @@ parser.add_argument("--out","--output-dir", type=str, dest="output_dir",
 parser.add_argument("--classifiers-dir", type=str, dest="classifiers_dir",
                     help="specify the directory from which the execution \
                     pipelines will be loaded")
-parser.add_argument("--classification-type", type=str, dest="classification_type",
+parser.add_argument("--classification-type", type=str, 
+                    dest="classification_type",
                     help="specify the type of classification required \
                     [loose / successive]")
 parser.add_argument("--hyper-parameters", type=str, dest="hyper_parameters",
                     default="",
                     help="specify a config file listing the hyper parameters \
-                    to be tuned")
+                    to be tuned (grid search)")
 parser.add_argument("--no-cross-validation", action='store_false',
                     dest="cross_validation", default=True,
                     help="specify if you want to cross validate your model")
 parser.add_argument("--truth-dir", type=str, dest="truth_dir",
-                    help="specify a truth directory to evaluate the classification \
-                    results")
+                    help="specify a truth directory to evaluate the\
+                    classification results")
 parser.add_argument("--scores",  type=str, dest="scores",
                     default="precision",
                     help="The score function to optimize ('-' separated)")
@@ -59,6 +60,9 @@ parser.add_argument("-v", "--verbosity",  type=integer, dest="verbosity",
                     default=1,
                     help="define the verbosity level that you need \
                     (0 is minimal, 3 is maximal)")
+parser.add_argument("--gensim", dest="gensim", action='store_true',
+                    default=False, 
+                    help="specify the use of gensim doc2vec tool")
     
 
 args = parser.parse_args(sys.argv)
@@ -184,6 +188,7 @@ elif usr_request == "optimize":
 
     optimize_opt = {
         "aggregation"          : args.aggregation,
+        "gensim"               : args.gensim,
         "hyper-parameters"     : args.hyper_parameters,
         "input-dir"            : args.input_dir,
         "label_type"           : args.label_type,
@@ -208,6 +213,8 @@ elif usr_request == "train":
     #   - aggregation          : number of tweets in a single document
     #   - classifier           : classifiers code / path to config file
     #   - features             : features extractors code / path to config file
+    #   - gensim               : specifies the use of doc2vec as features
+    #   - hyper-params         : a path to a conf file for gensim doc2vec
     #   - input-dir            : input directory for tweet loading
     #   - label-type           : which labels to train on
     #   - no-cross-validation  : assess if the classifier should be cross-valid
@@ -220,13 +227,15 @@ elif usr_request == "train":
         "classifier"           : args.classifier,
         "cross-validation"     : args.cross_validation,
         "features"             : args.features,
+        "gensim"               : args.gensim,
+        "hyper-parameters"     : args.hyper_parameters,
         "input-dir"            : args.input_dir,
         "label_type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
         "verbosity"            : args.verbosity
         }
-
+    
     from act_trainer import train
     train(trainer_opt)
 
