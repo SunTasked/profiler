@@ -41,7 +41,7 @@ def train(options) :
     if not (options["label_type"]):
         abort_clean("Labels not specified", "expected 'l', 'g' or 'v'")
     
-    if not (options["features"]):
+    if not(options["features"]) and not(options["gensim"]):
         abort_clean("Features not specified")
 
     if not (options["classifier"]):
