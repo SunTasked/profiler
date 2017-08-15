@@ -164,11 +164,11 @@ def train(options) :
         filename = str(get_features_extr_name(features_extr) + 
             "+" + get_classifier_name(classifier))
     
-    save_model(
-        pipeline=pipeline, 
-        output_dir=options["output-dir"],
-        filename=filename,
-        verbose=options["verbosity"]) 
+        save_model(
+            pipeline=pipeline, 
+            output_dir=options["output-dir"],
+            filename=filename,
+            verbose=options["verbosity"]) 
 
 
     #--------------------------------------------------------------------------
