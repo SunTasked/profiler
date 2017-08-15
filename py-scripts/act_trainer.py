@@ -337,7 +337,13 @@ def train_model_gensim_cross_validation(authors, label_type,
     if config:
         conf = load_config(config)["extractors"][0] # legacy conf files
         if verbose:
-            print("loading doc2vec config file from disk")
+            print("loading doc2vec config file from disk :")
+            print("  - vector_size = " + 
+                str(conf["configuration"]["vector_size"]))
+            print("  - window      = " + 
+                str(conf["configuration"]["window"]))
+            print("  - min_count   = " + 
+                str(conf["configuration"]["min_count"]))
 
     # Kfold parameters.
     confusion = array(
@@ -408,7 +414,9 @@ def train_model_gensim_cross_validation(authors, label_type,
         train_vectors = zeros((sum(idxs), model_dm.vector_size*2))
         train_labels = []
         for i, tag in enumerate(model_dm.docvecs.doctags):
-            train_vectors[i] = concatenate((model_dm.docvecs[tag],model_pv.docvecs[tag]), axis=0)
+            train_vectors[i] = concatenate(
+                (model_dm.docvecs[tag],model_pv.docvecs[tag]), 
+                axis=0 )
             train_labels.append(tag.split('_')[0])
         train_labels = array(train_labels)
 
@@ -420,9 +428,11 @@ def train_model_gensim_cross_validation(authors, label_type,
         predictions = []
         for author in test_authors :
             # test dataset conversion (doc->vectors)
-            tweet_vectors = [concatenate((model_dm.infer_vector(tknzr.tokenize(tweet)),
-                             model_pv.infer_vector(tknzr.tokenize(tweet))), axis=0)
-                                for tweet in author["tweets"]]
+            tweet_vectors = [ concatenate(
+                (model_dm.infer_vector(tknzr.tokenize(tweet)),
+                    model_pv.infer_vector(tknzr.tokenize(tweet))), 
+                axis=0)
+                for tweet in author["tweets"] ]
 
             author_tmp = {"tweets" : tweet_vectors}
             var_classes, var_predictions = predict_author_proba(
