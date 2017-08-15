@@ -5,11 +5,11 @@ from numpy import array, zeros, concatenate
 from sklearn.base import clone
 from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import KFold
-from nltk.tokenize import TweetTokenizer
 
 from act_classifier import predict_author_proba
 from classifiers import get_classifier
 from features import get_features_extr, get_doc2vec
+from letter_tokenizer import Tokenizer
 from persistance import save_model, save_scores, load_config
 from dataset_parser import parse_tweets_from_main_dir, parse_tweets_from_dir
 from pipeline import get_pipeline
@@ -38,7 +38,7 @@ def train(options) :
 
     #--------------------------------------------------------------------------
     # Check basic requirements
-    if not (options["label_type"]):
+    if not (options["label-type"]):
         abort_clean("Labels not specified", "expected 'l', 'g' or 'v'")
     
     if not(options["features"]) and not(options["gensim"]):
@@ -104,14 +104,15 @@ def train(options) :
         if options["gensim"]:
             model, pipeline, scores = train_model_gensim_cross_validation(
                             authors=Authors,
-                            label_type = options["label_type"], 
+                            label_type = options["label-type"], 
                             pipeline=pipeline,
                             config=options["hyper-parameters"],
+                            token_level=options["token-level"],
                             verbose=options["verbosity"])
         else:                    
             pipeline, scores = train_model_cross_validation(
                             authors=Authors,
-                            label_type = options["label_type"], 
+                            label_type = options["label-type"], 
                             pipeline=pipeline, 
                             verbose=options["verbosity"])
 
@@ -146,7 +147,7 @@ def train(options) :
 
         train_corpus = build_corpus(
             authors=Authors,
-            label_type=options["label_type"],
+            label_type=options["label-type"],
             verbosity=options["verbosity"])
 
         pipeline = train_model(
@@ -306,7 +307,8 @@ def train_model_cross_validation(authors, label_type, pipeline, verbose=1):
 
 
 def train_model_gensim_cross_validation(authors, label_type, 
-                                        pipeline, config="", verbose=1):
+                                        pipeline, config="", 
+                                        token_level="word", verbose=1):
     '''
     Takes a doc2vec model and trains it on the specified corpus.
     Takes a classifier and trains it on the doc2vec model vectors.
@@ -344,6 +346,11 @@ def train_model_gensim_cross_validation(authors, label_type,
             print("  - min_count   = " + 
                 str(conf["configuration"]["min_count"]))
 
+    # load the tokenizer
+    tknzr = Tokenizer(token_level)
+    if verbose : 
+        print("Selected token level : " + token_level + "\n")
+
     # Kfold parameters.
     confusion = array(
         [[0 for x in range(len(labels))] for y in range(len(labels))])
@@ -354,7 +361,6 @@ def train_model_gensim_cross_validation(authors, label_type,
     scores_micro=[]
     scores_macro=[]
     n_run = 1
-    tknzr = TweetTokenizer(strip_handles=True, reduce_len=True)
     k_fold = KFold(n_splits=10, shuffle=True)
     authors = array(authors)
 

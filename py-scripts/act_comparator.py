@@ -29,7 +29,7 @@ def compare(options):
 
     #--------------------------------------------------------------------------
     # Check basic requirements
-    if not (options["label_type"]):
+    if not (options["label-type"]):
         abort_clean("label type not specified", "expected 'l', 'g' or 'v'")
     
     if not (options["features"]):
@@ -136,7 +136,7 @@ def compare(options):
             try:
                 model, step_scores = train_model_cross_validation(
                         authors=Authors,
-                        label_type = options["label_type"], 
+                        label_type = options["label-type"], 
                         pipeline=pipeline,
                         verbose=False)
             except:

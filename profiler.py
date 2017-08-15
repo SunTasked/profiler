@@ -49,6 +49,10 @@ parser.add_argument("--no-cross-validation", action='store_false',
 parser.add_argument("--truth-dir", type=str, dest="truth_dir",
                     help="specify a truth directory to evaluate the\
                     classification results")
+parser.add_argument("--token-level", type=str, dest="token_level",
+                    default="word",
+                    help="specify the level of the tweets segmentation\
+                    (word, char). This applies after tweet aggregation.")
 parser.add_argument("--scores",  type=str, dest="scores",
                     default="precision",
                     help="The score function to optimize ('-' separated)")
@@ -122,7 +126,7 @@ elif usr_request == "compare":
     #   - classifier           : classifiers code / path to config file
     #   - features             : features extractors code / path to config file
     #   - input-dir            : input directory for tweet loading
-    #   - label_type           : which labels to train on
+    #   - label-type           : which labels to train on
     #   - output-dir           : output directory for resulting files
     #   - processed-tweets-dir : (legacy) directory for the parsed tweets
     #   - verbosity            : noise level on the terminal
@@ -132,7 +136,7 @@ elif usr_request == "compare":
         "classifier"           : args.classifier,
         "features"             : args.features,
         "input-dir"            : args.input_dir,
-        "label_type"           : args.label_type,
+        "label-type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
         "verbosity"            : args.verbosity
@@ -181,7 +185,7 @@ elif usr_request == "optimize":
     #   - hyper-params         : a path to a file listing the hyper parameters
     #                            to be tuned (name + values)
     #   - input-dir            : input directory for tweet loading
-    #   - label_type           : which labels to train on
+    #   - label-type           : which labels to train on
     #   - output-dir           : output directory for resulting files
     #   - processed-tweets-dir : (legacy) directory for the parsed tweets
     #   - verbosity            : noise level on the terminal
@@ -191,7 +195,7 @@ elif usr_request == "optimize":
         "gensim"               : args.gensim,
         "hyper-parameters"     : args.hyper_parameters,
         "input-dir"            : args.input_dir,
-        "label_type"           : args.label_type,
+        "label-type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
         "verbosity"            : args.verbosity
@@ -230,9 +234,10 @@ elif usr_request == "train":
         "gensim"               : args.gensim,
         "hyper-parameters"     : args.hyper_parameters,
         "input-dir"            : args.input_dir,
-        "label_type"           : args.label_type,
+        "label-type"           : args.label_type,
         "output-dir"           : args.output_dir,
         "processed-tweets-dir" : args.processed_tweets_dir,
+        "token-level"          : args.token_level,
         "verbosity"            : args.verbosity
         }
     

@@ -32,7 +32,7 @@ def optimize(options):
 
     #--------------------------------------------------------------------------
     # Check basic requirements
-    if not (options["label_type"]):
+    if not (options["label-type"]):
         abort_clean("Label type not specified", "expected 'v' or 'g'")
     
     if not (options["hyper-parameters"]):
@@ -103,7 +103,7 @@ def optimize(options):
 
         optimize_corpus = build_corpus(
             authors=Authors,
-            label_type=options["label_type"],
+            label_type=options["label-type"],
             verbosity=options["verbosity"])
 
         clf_optimizer = GridSearchCV(
