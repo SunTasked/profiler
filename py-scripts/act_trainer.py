@@ -122,19 +122,18 @@ def train(options) :
         if options["output-dir"]:
             if options["gensim"]:
                 filename = str("doc2vec" + 
-                    "-dm_" + str(model.dm) +
-                    "-siz_" + str(model.vector_size) +
-                    "-win_" + str(model.window) +
-                    "-cnt_" + str(model.min_count) +
+                    "-siz_" + str(model[0].vector_size) +
+                    "-win_" + str(model[0].window) +
+                    "-cnt_" + str(model[0].min_count) +
                     get_classifier_name(classifier))
             else:
                 filename = str(get_features_extr_name(features_extr) + 
                     "+" + get_classifier_name(classifier))
-            save_scores(
-                scores=scores,
-                output_dir=options["output-dir"],
-                filename=filename,
-                verbose=options["verbosity"])
+                save_scores(
+                    scores=scores,
+                    output_dir=options["output-dir"],
+                    filename=filename,
+                    verbose=options["verbosity"])
 
     # train without validation --> output-dir required
     else:
